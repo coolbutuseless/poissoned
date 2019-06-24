@@ -1,0 +1,115 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(ggplot2)
+})
+
+```
+# poissoned
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+`poissoned` is an Rstats implementation of the poisson disk sampling algorithm from 
+[Bridson's paper - Fast Poisson Disk Sampling in Arbitrary Dimensions](https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf)
+
+Notes:
+
+* only implemented the 2d case
+* adjusted the algorithm in order to ensure repeatable/tileable samples with 
+  minimal artifacts at the joins
+* similar in purpose to [Will Chase's](https://twitter.com/W_R_Chase) package [{poissondisc}](https://github.com/will-r-chase/poissondisc). However, `poissoned`
+has a a completely different implementation which ends up being much faster.
+
+
+## Installation
+
+You can install from [GitHub](https://github.com/coolbutuseless/poissoned) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("coolbutuseless/poissoned")
+```
+## Basic Usage
+
+
+
+```{r example}
+library(poissoned)
+
+set.seed(1)
+points <- poissoned::poisson_disc(ncols = 50, nrows = 35, cell_size = 10, verbose = TRUE)
+
+ggplot(points) +
+  geom_point(aes(x, y)) +
+  theme_bw() +
+  coord_fixed() +
+  theme(
+    panel.grid = element_blank(),
+    axis.title = element_blank()
+  ) 
+```
+
+
+# Tileability
+
+The points generated from `poissoned::poisson_disc()` are tileable in that there 
+should be minimal artifacts at the joins.
+
+In the graph below, the initial set of points (highlighted in blue) were manually replicated
+and offset eight times.
+
+```{r echo = FALSE}
+ncols     <- 30
+nrows     <- 20
+cell_size <- 10
+
+
+set.seed(2)
+points <- poissoned::poisson_disc(ncols = ncols, nrows = nrows)
+
+width     <- ncols * cell_size
+height    <- nrows * cell_size
+
+off <- expand.grid(
+  xoff = 0:2 * width,
+  yoff = 0:2 * height
+)
+
+tiled_points <- merge(points, off) %>%
+  as.tbl() %>%
+  mutate(
+    x = x + xoff,
+    y = y + yoff
+  )
+
+
+
+ggplot(tiled_points) +
+  geom_rect(xmin = 0, xmax = width, ymin = 0, ymax = height, fill = 'lightblue') +
+  geom_point(aes(x, y), size = 1) +
+  theme_bw() +
+  coord_fixed() +
+  theme(
+    panel.grid = element_blank(),
+    axis.title = element_blank()
+  ) +
+  NULL
+```
+
+
+
+
