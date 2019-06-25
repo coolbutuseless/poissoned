@@ -5,7 +5,8 @@
 \title{Generate tileable poisson disc samples}
 \usage{
 poisson_disc(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
-  tileable = TRUE, keep_boundary = FALSE, verbose = FALSE)
+  xinit = NULL, yinit = NULL, tileable = TRUE, keep_idx = FALSE,
+  keep_boundary = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{ncols, nrows}{number of cells in x and y direction. Resulting point coordinate
@@ -15,7 +16,13 @@ ranges will be x = [0, ncols*cell_size] and y = [0, nrows*cell_size]}
 
 \item{k}{number of sample points to generate at each iteration. default 30}
 
+\item{xinit, yinit}{coordinates of seed point. If either is NULL, then a random point
+will be chosen. Default: NULL}
+
 \item{tileable}{enforce boundary conditions to make point set tileable. default: TRUE}
+
+\item{keep_idx}{return an index indicating the order in which the points were
+calcualted. default: FALSE}
 
 \item{keep_boundary}{keep the boundary condition points used for enforcing
 tileability. This is probably only useful for debugging.  default: FALSE}
@@ -23,7 +30,8 @@ tileability. This is probably only useful for debugging.  default: FALSE}
 \item{verbose}{default: FALSE}
 }
 \value{
-data.frame with x and y coordinates
+data.frame with x and y coordinates and the 'idx' order in which
+        the points were added.
 }
 \description{
 Generate tileable poisson disc samples

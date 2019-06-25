@@ -7,18 +7,24 @@
 #'        ranges will be x = [0, ncols*cell_size] and y = [0, nrows*cell_size]
 #' @param cell_size length of side of an individual cell
 #' @param k number of sample points to generate at each iteration. default 30
+#' @param xinit,yinit coordinates of seed point. If either is NULL, then a random point
+#'        will be chosen. Default: NULL
 #' @param tileable enforce boundary conditions to make point set tileable. default: TRUE
+#' @param keep_idx return an index indicating the order in which the points were
+#'        calcualted. default: FALSE
 #' @param keep_boundary keep the boundary condition points used for enforcing
 #'        tileability. This is probably only useful for debugging.  default: FALSE
 #' @param verbose default: FALSE
 #'
-#' @return data.frame with x and y coordinates
+#' @return data.frame with x and y coordinates and the 'idx' order in which
+#'         the points were added.
 #'
 #' @importFrom stats runif
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
-                         tileable = TRUE, keep_boundary = FALSE, verbose = FALSE) {
+                         xinit = NULL, yinit = NULL, tileable = TRUE,
+                         keep_idx = FALSE, keep_boundary = FALSE, verbose = FALSE) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Output canvas size
@@ -59,6 +65,11 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
   gridx <- matrix(Inf, nrow = rows, ncol = cols)
   gridy <- matrix(Inf, nrow = rows, ncol = cols)
 
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Keep track of point insertion order 'io'
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  io <- matrix(0L, nrow = rows, ncol = cols)
+  N  <- 0L
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Keep note of where the border edge is (excluding the buffer) so that
@@ -80,20 +91,28 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
 
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Initialise the grid with a seed point
+  # Initialise the grid with a seed point. The user may have supplied
+  # their own seed points!
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  x  <- runif(1, 0, width )
-  y  <- runif(1, 0, height)
+  if (is.null(xinit) | is.null(yinit)) {
+    x <- runif(1, 0, width )
+    y <- runif(1, 0, height)
+  } else {
+    x <- xinit
+    y <- yinit
+  }
 
   xg <- gridify(x)
   yg <- gridify(y)
 
-  gridx[yg, xg] <- x
-  gridy[yg, xg] <- y
+  gridx[cbind(yg, xg)] <- x
+  gridy[cbind(yg, xg)] <- y
+  io   [cbind(yg, xg)] <- seq_along(x)
+  N                    <- length(x)
 
-  actlist <- list()
+
   gidx <- (xg - 1L) * rows + yg
-  actlist[[1]] <- gidx
+  actlist <- as.list(gidx)
 
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -220,6 +239,8 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
     gidx <- (xg - 1L) * rows + yg
     gridx [gidx] <- xb
     gridy [gidx] <- yb
+    N            <- N + 1L
+    io    [gidx] <- N
 
     actlist[[length(actlist) + 1L]] <- gidx
 
@@ -307,18 +328,51 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
 
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # extract just the points that aren't infinite and exclude any shadow points
-  # outside of (0,0) to (width,height)
+  # Extract the data to return to the user
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  within_canvas <- gridx > 0 & gridx < width & gridy > 0 & gridy < height
+
   if (keep_boundary) {
     valid <- is.finite(gridx)
   } else {
-    valid <- is.finite(gridx) & gridx > 0 & gridx < width & gridy > 0 & gridy < height
+    valid <- is.finite(gridx) & within_canvas
   }
 
-  data.frame(
+  res <- data.frame(
     x = gridx[valid],
     y = gridy[valid]
   )
+
+  if (keep_boundary) {
+    res$boundary <- !within_canvas[valid]
+  }
+
+  if (keep_idx) {
+    res$idx <- io[valid]
+  }
+
+
+  res
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

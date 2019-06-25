@@ -73,7 +73,7 @@ In the graph below, the initial set of points (highlighted in blue) were manuall
 and offset eight times.
 
 ```{r echo = FALSE}
-ncols     <- 30
+ncols     <- 25
 nrows     <- 20
 cell_size <- 10
 
@@ -107,8 +107,151 @@ ggplot(tiled_points) +
     panel.grid = element_blank(),
     axis.title = element_blank()
   ) +
-  NULL
+  labs(title = "The initial point set (blue highlight) is repeated and tiled (seamlessly!)")
 ```
+
+
+
+
+# Tileability - details
+
+Tileability is achieved by copying edge points to outside the opposite edge - this
+simulates a toroidal coordinate system such that the canvas wraps around on itself.
+
+These boundary points are retrievable by setting `keep_boundary = TRUE`.  
+
+In the following plot, the dashed line indicates the limits of the point set, 
+and the blue points are translated points copied from the opposite edge.
+
+
+```{r echo = FALSE}
+set.seed(1)
+```
+
+```{r tileability_details}
+points <- poissoned::poisson_disc(ncols = 30, nrows = 20, cell_size = 10, 
+                                  keep_boundary = TRUE, verbose = TRUE)
+
+ggplot(points) +
+  geom_rect(xmin = 0, xmax = 300, ymin = 0, ymax = 200, fill = NA, colour = '#a0a0a0', linetype = 2) + 
+  geom_point(aes(x, y, colour = boundary)) +
+  theme_void() +
+  coord_fixed() +
+  theme(legend.position = 'none') +
+  labs(title = "Blue points are points used to enforce a boundary condition to ensure \noutput point set is tileable")
+```
+
+
+
+
+
+# Point discovery order
+
+New points are generated through an iterative process. `poisson_disc()` can
+return the order in which points were generated using the `keep_idx` argument.
+
+It is also possible to pass in the seed point to initialise the process. If a
+seed point is not given, then a random point will be chosen.
+
+
+```{r echo = FALSE}
+set.seed(1)
+```
+
+```{r discovery_order}
+points <- poissoned::poisson_disc(ncols = 120, nrows = 80, cell_size = 10, 
+                                  xinit = 600, yinit = 400,
+                                  keep_idx = TRUE, verbose = TRUE)
+
+nrow(points)
+
+ggplot(points) +
+  geom_point(aes(x, y, colour = idx)) +
+  theme_void() +
+  coord_fixed() +
+  theme(legend.position = 'none') +
+  scale_color_viridis_c() +
+  labs(title = "Seed point at centre. Points coloured by discovery order.")
+```
+
+
+
+
+
+```{r echo = FALSE, eval = FALSE}
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Generate an animation of the points being found
+#
+# 1. Create points
+# 2. Render a bunch of ggplots - each showing more of the points
+# 3. ffmpeg -r 60 -f image2 -i %05d.png -vcodec libx264 -crf 25  -pix_fmt yuv420p -s 800x500 ../test4000.mp4
+#
+# Note: gganimate barfed when trying to render, so I switched to this manual process.
+#
+# ffmpeg info from:
+# http://hamelot.io/visualization/using-ffmpeg-to-convert-a-set-of-images-into-a-video/
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+suppressPackageStartupMessages({
+  library(magrittr)
+  library(dplyr)
+  library(ggplot2)
+  library(furrr)
+})
+
+
+plan(multiprocess)
+
+width  <- 150 * 0.9
+height <- 100 * 0.9
+
+set.seed(1)
+points <- poisson_disc(ncols = width, nrows = height, cell_size = 2,
+                       xinit = width, yinit = height,
+                       keep_boundary = FALSE, verbose = TRUE)
+
+points <- points %>% arrange(idx)
+nrow(points)
+
+
+create_plot <- function(i) {
+  plot_df <- points %>% slice(seq(i))
+  
+  p <- ggplot(plot_df) +
+    geom_point(aes(x, y), size = 0.2) +
+    theme_void() +
+    coord_fixed() +
+    theme(legend.position = 'none') +
+    xlim(0, width  * 2) +
+    ylim(0, height * 2)
+  
+  filename <- sprintf("working/%05i.png", i)
+  ggsave(filename, plot = p, width = 4, height = 3.2)
+  
+  i
+}
+
+zz <- (seq_len(max(points$idx))) %>%
+  furrr::future_map_int(create_plot)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
