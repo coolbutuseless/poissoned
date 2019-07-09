@@ -93,10 +93,13 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Initialise the grid with a seed point. The user may have supplied
   # their own seed points!
+  # If we are generating a seed automatically, enforce it to be near the
+  # centre to avoid some edge cases that aren't handled here (because this
+  # first point is not (currently) mirrored for the boundary conditions)
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (is.null(xinit) | is.null(yinit)) {
-    x <- runif(1, 0, width )
-    y <- runif(1, 0, height)
+    x <- runif(1, 0.25 * width , 0.75 * width )
+    y <- runif(1, 0.25 * height, 0.75 * height)
   } else {
     x <- xinit
     y <- yinit
@@ -244,7 +247,6 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
 
     actlist[[length(actlist) + 1L]] <- gidx
 
-
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Do extra work to make points tileable
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -262,6 +264,7 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
         gidx <- (xgt - 1L) * rows + ygt
         gridx[gidx] <- xt
         gridy[gidx] <- yt
+        io   [gidx] <- N
       } else if (xg == max_grid_x) {
         xt   <- xb - width
         yt   <- yb
@@ -270,6 +273,7 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
         gidx <- (xgt - 1L) * rows + ygt
         gridx[gidx] <- xt
         gridy[gidx] <- yt
+        io   [gidx] <- N
       }
 
       if (yg == min_grid_y) {
@@ -280,6 +284,7 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
         gidx <- (xgt - 1L) * rows + ygt
         gridx[gidx] <- xt
         gridy[gidx] <- yt
+        io   [gidx] <- N
       } else if (yg == max_grid_y) {
         xt  <- xb
         yt  <- yb - height
@@ -288,40 +293,53 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
         gidx <- (xgt - 1L) * rows + ygt
         gridx[gidx] <- xt
         gridy[gidx] <- yt
+        io   [gidx] <- N
+      }
+
+      #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      # Copy points in the corner grid locations
+      #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      if (xg == min_grid_x && yg == min_grid_y) {
+        xt   <- xb + width
+        yt   <- yb + height
+        xgt  <- max_grid_x + 1L
+        ygt  <- max_grid_y + 1L
+        gidx <- (xgt - 1L) * rows + ygt
+        gridx[gidx] <- xt
+        gridy[gidx] <- yt
+        io   [gidx] <- N
+      } else if (xg == max_grid_x && yg == min_grid_y) {
+        xt   <- xb - width
+        yt   <- yb + height
+        xgt  <- min_grid_x - 1L
+        ygt  <- max_grid_y + 1L
+        gidx <- (xgt - 1L) * rows + ygt
+        gridx[gidx] <- xt
+        gridy[gidx] <- yt
+        io   [gidx] <- N
+      } else if (xg == min_grid_x && yg == max_grid_y) {
+        xt   <- xb + width
+        yt   <- yb - height
+        xgt  <- max_grid_x + 1L
+        ygt  <- min_grid_y - 1L
+        gidx <- (xgt - 1L) * rows + ygt
+        gridx[gidx] <- xt
+        gridy[gidx] <- yt
+        io   [gidx] <- N
+      } else if (xg == max_grid_x && yg == max_grid_y) {
+        xt   <- xb - width
+        yt   <- yb - height
+        xgt  <- min_grid_x - 1L
+        ygt  <- min_grid_y - 1L
+        gidx <- (xgt - 1L) * rows + ygt
+        gridx[gidx] <- xt
+        gridy[gidx] <- yt
+        io   [gidx] <- N
       }
 
 
-      #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      # Corner logic is a bit more complex. Only copy the first corner
-      # point to all 4 outer corners.  So always check if there is
-      # already something in the outer corners before proceeding
-      #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      if ((xg == min_grid_x || xg == max_grid_x) &&
-          (yg == min_grid_y || yg == max_grid_y)) {
 
-        gidx <- (min_grid_x - 1L - 1L) * rows + (min_grid_y - 1L - 1L)
 
-        if (is.infinite(gridx[gidx])) {
-          xt <- xb %% cell_size
-          yt <- yb %% cell_size
-
-          gidx <- (min_grid_x - 1L - 1L) * rows + (min_grid_y - 1L - 1L)
-          gridx[gidx] <- xt - cell_size
-          gridy[gidx] <- yt - cell_size
-
-          gidx <- (min_grid_x - 1L - 1L) * rows + (max_grid_y + 1L - 1L)
-          gridx[gidx] <- xt - cell_size
-          gridy[gidx] <- yt + height
-
-          gidx <- (max_grid_x + 1L - 1L) * rows + (max_grid_y + 1L - 1L)
-          gridx[gidx] <- xt + width
-          gridy[gidx] <- yt + height
-
-          gidx <- (max_grid_x + 1L - 1L) * rows + (min_grid_y - 1L - 1L)
-          gridx[gidx] <- xt + width
-          gridy[gidx] <- yt - cell_size
-        }
-      }
     } # End of if(tileable)
 
   } # End of while() loop
@@ -356,7 +374,14 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
 }
 
 
+if (interactive()) {
+  set.seed(6)
 
+  points <- poisson_disc(ncols = 4, nrows = 4, cell_size = 25,
+                                    keep_boundary = TRUE, verbose = TRUE, keep_idx = TRUE)
+
+  points %>% arrange(idx)
+}
 
 
 

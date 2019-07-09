@@ -59,7 +59,7 @@ ggplot(points) +
 The points generated from `poissoned::poisson_disc()` are tileable in
 that there should be minimal artifacts at the joins.
 
-In the graph below, the initial set of points (highlighted in blue) were
+In the graph below, the initial set of points (highlighted in blue) was
 manually replicated and offset eight times.
 
 <img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
@@ -77,17 +77,17 @@ set, and the blue points are translated points copied from the opposite
 edge.
 
 ``` r
-points <- poissoned::poisson_disc(ncols = 30, nrows = 20, cell_size = 10, 
+points <- poissoned::poisson_disc(ncols = 15, nrows = 10, cell_size = 20, 
                                   keep_boundary = TRUE, verbose = TRUE)
-#> poisson_disc(): 300x200, minimum distance = 14.14
+#> poisson_disc(): 300x200, minimum distance = 28.28
 
 ggplot(points) +
   geom_rect(xmin = 0, xmax = 300, ymin = 0, ymax = 200, fill = NA, colour = '#a0a0a0', linetype = 2) + 
-  geom_point(aes(x, y, colour = boundary)) +
+  geom_point(aes(x, y, colour = boundary), size = 5) +
   theme_void() +
   coord_fixed() +
   theme(legend.position = 'none') +
-  labs(title = "Blue points are points used to enforce a boundary condition to ensure \n output point set is tileable")
+  labs(title = "Blue points are points used to enforce a boundary condition to ensure \noutput point set is tileable")
 ```
 
 <img src="man/figures/README-tileability_details-1.png" width="100%" />
@@ -109,7 +109,7 @@ points <- poissoned::poisson_disc(ncols = 120, nrows = 80, cell_size = 10,
 #> poisson_disc(): 1200x800, minimum distance = 14.14
 
 nrow(points)
-#> [1] 3216
+#> [1] 3223
 
 ggplot(points) +
   geom_point(aes(x, y, colour = idx)) +

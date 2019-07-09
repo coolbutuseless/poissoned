@@ -69,12 +69,12 @@ ggplot(points) +
 The points generated from `poissoned::poisson_disc()` are tileable in that there 
 should be minimal artifacts at the joins.
 
-In the graph below, the initial set of points (highlighted in blue) were manually replicated
+In the graph below, the initial set of points (highlighted in blue) was manually replicated
 and offset eight times.
 
 ```{r echo = FALSE}
-ncols     <- 25
-nrows     <- 20
+ncols     <- 15
+nrows     <- 10
 cell_size <- 10
 
 
@@ -85,8 +85,8 @@ width     <- ncols * cell_size
 height    <- nrows * cell_size
 
 off <- expand.grid(
-  xoff = 0:2 * width,
-  yoff = 0:2 * height
+  xoff = -1:1 * width,
+  yoff = -1:1 * height
 )
 
 tiled_points <- merge(points, off) %>%
@@ -100,7 +100,7 @@ tiled_points <- merge(points, off) %>%
 
 ggplot(tiled_points) +
   geom_rect(xmin = 0, xmax = width, ymin = 0, ymax = height, fill = 'lightblue') +
-  geom_point(aes(x, y), size = 1) +
+  geom_point(aes(x, y), size = 2) +
   theme_bw() +
   coord_fixed() +
   theme(
@@ -129,12 +129,12 @@ set.seed(1)
 ```
 
 ```{r tileability_details}
-points <- poissoned::poisson_disc(ncols = 30, nrows = 20, cell_size = 10, 
+points <- poissoned::poisson_disc(ncols = 15, nrows = 10, cell_size = 20, 
                                   keep_boundary = TRUE, verbose = TRUE)
 
 ggplot(points) +
   geom_rect(xmin = 0, xmax = 300, ymin = 0, ymax = 200, fill = NA, colour = '#a0a0a0', linetype = 2) + 
-  geom_point(aes(x, y, colour = boundary)) +
+  geom_point(aes(x, y, colour = boundary), size = 5) +
   theme_void() +
   coord_fixed() +
   theme(legend.position = 'none') +
@@ -238,6 +238,37 @@ zz <- (seq_len(max(points$idx))) %>%
 
 
 
+```{r echo = FALSE, eval = FALSE}
+set.seed(1)
+
+# animated palette
+points <- poissoned::poisson_disc(ncols = 60, nrows = 40, cell_size = 10, 
+                                  xinit = 300, yinit = 200,
+                                  keep_idx = TRUE, verbose = TRUE)
+
+dir.create("cycle", showWarnings = FALSE)
+
+N <- max(points$idx)
+points$idx <- N - points$idx
+
+offsets <- as.integer(seq(1, N, length.out = 120))
+
+offset <- offsets[1]
+for (offset in offsets) {
+
+points$idx2 <- (points$idx + offset) %% N
+p <- ggplot(points) +
+  geom_point(aes(x, y, colour = idx2)) +
+  theme_void() +
+  coord_fixed() +
+  theme(legend.position = 'none') +
+  scale_color_viridis_c() 
+
+
+filename <- sprintf("cycle/c%04i.png", offset)
+ggsave(filename, p, width = 3, height = 2)
+}
+```
 
 
 
