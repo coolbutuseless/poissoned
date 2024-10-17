@@ -1,6 +1,7 @@
 # poissoned 0.1.2.9000
 
-* Refactor
+* [9000] Refactor
+* [9000] Remove ability to create tile-able points
 
 # poissoned 0.1.2
 

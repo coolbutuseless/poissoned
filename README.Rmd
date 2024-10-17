@@ -62,85 +62,6 @@ ggplot(points) +
 ```
 
 
-# Tileability
-
-The points generated from `poissoned::poisson_disc()` are tileable in that there 
-should be minimal artifacts at the joins.
-
-In the graph below, the initial set of points (highlighted in blue) was manually replicated
-and offset eight times.
-
-```{r echo = FALSE}
-ncols     <- 15
-nrows     <- 10
-cell_size <- 10
-
-
-set.seed(2)
-points <- poissoned::poisson_disc(ncols = ncols, nrows = nrows)
-
-width     <- ncols * cell_size
-height    <- nrows * cell_size
-
-off <- expand.grid(
-  xoff = -1:1 * width,
-  yoff = -1:1 * height
-)
-
-tiled_points <- merge(points, off) %>%
-  as.tbl() %>%
-  mutate(
-    x = x + xoff,
-    y = y + yoff
-  )
-
-
-
-ggplot(tiled_points) +
-  geom_rect(xmin = 0, xmax = width, ymin = 0, ymax = height, fill = 'lightblue') +
-  geom_point(aes(x, y), size = 2) +
-  theme_bw() +
-  coord_fixed() +
-  theme(
-    panel.grid = element_blank(),
-    axis.title = element_blank()
-  ) +
-  labs(title = "The initial point set (blue highlight) is repeated and tiled (seamlessly!)")
-```
-
-
-
-
-# Tileability - details
-
-Tileability is achieved by copying edge points to outside the opposite edge - this
-simulates a toroidal coordinate system such that the canvas wraps around on itself.
-
-These boundary points are retrievable by setting `keep_boundary = TRUE`.  
-
-In the following plot, the dashed line indicates the limits of the point set, 
-and the blue points are translated points copied from the opposite edge.
-
-
-```{r echo = FALSE}
-set.seed(1)
-```
-
-```{r tileability_details}
-points <- poissoned::poisson_disc(ncols = 15, nrows = 10, cell_size = 20, 
-                                  keep_boundary = TRUE, verbose = TRUE)
-
-ggplot(points) +
-  geom_rect(xmin = 0, xmax = 300, ymin = 0, ymax = 200, fill = NA, colour = '#a0a0a0', linetype = 2) + 
-  geom_point(aes(x, y, colour = boundary), size = 5) +
-  theme_void() +
-  coord_fixed() +
-  theme(legend.position = 'none') +
-  labs(title = "Blue points are points used to enforce a boundary condition to ensure \noutput point set is tileable")
-```
-
-
-
 
 
 # Point discovery order
@@ -206,7 +127,7 @@ height <- 100 * 0.9
 set.seed(1)
 points <- poisson_disc(ncols = width, nrows = height, cell_size = 2,
                        xinit = width, yinit = height,
-                       keep_boundary = FALSE, verbose = TRUE)
+                       verbose = TRUE)
 
 points <- points %>% arrange(idx)
 nrow(points)

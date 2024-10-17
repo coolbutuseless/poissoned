@@ -1,7 +1,7 @@
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Generate tileable poisson disc samples
+#' Generate poisson disc samples
 #'
 #' @param ncols,nrows number of cells in x and y direction. Resulting point coordinate
 #'        ranges will be x = [0, ncols*cell_size] and y = [0, nrows*cell_size]
@@ -9,11 +9,8 @@
 #' @param k number of sample points to generate at each iteration. default 30
 #' @param xinit,yinit coordinates of seed point. If either is NULL, then a random point
 #'        will be chosen. Default: NULL
-#' @param tileable enforce boundary conditions to make point set tileable. default: TRUE
 #' @param keep_idx return an index indicating the order in which the points were
 #'        calcualted. default: FALSE
-#' @param keep_boundary keep the boundary condition points used for enforcing
-#'        tileability. This is probably only useful for debugging.  default: FALSE
 #' @param verbose default: FALSE
 #'
 #' @return data.frame with x and y coordinates and the 'idx' order in which
@@ -23,8 +20,8 @@
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
-                         xinit = NULL, yinit = NULL, tileable = TRUE,
-                         keep_idx = FALSE, keep_boundary = FALSE, verbose = FALSE) {
+                         xinit = NULL, yinit = NULL,
+                         keep_idx = FALSE, verbose = FALSE) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Output canvas size
@@ -70,16 +67,6 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   io <- matrix(0L, nrow = rows, ncol = cols)
   N  <- 0L
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Keep note of where the border edge is (excluding the buffer) so that
-  # we know when to replicate a point to outside the  opposite edge in order
-  # to fake a toroidal coord system so we get a tileable set of poisson points
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  min_grid_x <- 4
-  min_grid_y <- 4
-  max_grid_x <- cols - 4
-  max_grid_y <- rows - 4
 
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -246,102 +233,6 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
     io    [gidx] <- N
 
     actlist[[length(actlist) + 1L]] <- gidx
-
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # Do extra work to make points tileable
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    if (tileable) {
-      #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      # If the new point lies along the border of the grid
-      # copy it to just outside to the opposite edge in order
-      # to simulate toroidal-ness and make the resulting points tileable
-      #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      if (xg == min_grid_x) {
-        xt   <- xb + width
-        yt   <- yb
-        xgt  <- max_grid_x + 1L
-        ygt  <- yg
-        gidx <- (xgt - 1L) * rows + ygt
-        gridx[gidx] <- xt
-        gridy[gidx] <- yt
-        io   [gidx] <- N
-      } else if (xg == max_grid_x) {
-        xt   <- xb - width
-        yt   <- yb
-        xgt  <- min_grid_x - 1L
-        ygt  <- yg
-        gidx <- (xgt - 1L) * rows + ygt
-        gridx[gidx] <- xt
-        gridy[gidx] <- yt
-        io   [gidx] <- N
-      }
-
-      if (yg == min_grid_y) {
-        xt   <- xb
-        yt   <- yb + height
-        xgt  <- xg
-        ygt  <- max_grid_y + 1L
-        gidx <- (xgt - 1L) * rows + ygt
-        gridx[gidx] <- xt
-        gridy[gidx] <- yt
-        io   [gidx] <- N
-      } else if (yg == max_grid_y) {
-        xt  <- xb
-        yt  <- yb - height
-        xgt <- xg
-        ygt <- min_grid_y - 1L
-        gidx <- (xgt - 1L) * rows + ygt
-        gridx[gidx] <- xt
-        gridy[gidx] <- yt
-        io   [gidx] <- N
-      }
-
-      #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      # Copy points in the corner grid locations
-      #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      if (xg == min_grid_x && yg == min_grid_y) {
-        xt   <- xb + width
-        yt   <- yb + height
-        xgt  <- max_grid_x + 1L
-        ygt  <- max_grid_y + 1L
-        gidx <- (xgt - 1L) * rows + ygt
-        gridx[gidx] <- xt
-        gridy[gidx] <- yt
-        io   [gidx] <- N
-      } else if (xg == max_grid_x && yg == min_grid_y) {
-        xt   <- xb - width
-        yt   <- yb + height
-        xgt  <- min_grid_x - 1L
-        ygt  <- max_grid_y + 1L
-        gidx <- (xgt - 1L) * rows + ygt
-        gridx[gidx] <- xt
-        gridy[gidx] <- yt
-        io   [gidx] <- N
-      } else if (xg == min_grid_x && yg == max_grid_y) {
-        xt   <- xb + width
-        yt   <- yb - height
-        xgt  <- max_grid_x + 1L
-        ygt  <- min_grid_y - 1L
-        gidx <- (xgt - 1L) * rows + ygt
-        gridx[gidx] <- xt
-        gridy[gidx] <- yt
-        io   [gidx] <- N
-      } else if (xg == max_grid_x && yg == max_grid_y) {
-        xt   <- xb - width
-        yt   <- yb - height
-        xgt  <- min_grid_x - 1L
-        ygt  <- min_grid_y - 1L
-        gidx <- (xgt - 1L) * rows + ygt
-        gridx[gidx] <- xt
-        gridy[gidx] <- yt
-        io   [gidx] <- N
-      }
-
-
-
-
-    } # End of if(tileable)
-
   } # End of while() loop
 
 
@@ -350,20 +241,12 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   within_canvas <- gridx > 0 & gridx < width & gridy > 0 & gridy < height
 
-  if (keep_boundary) {
-    valid <- is.finite(gridx)
-  } else {
-    valid <- is.finite(gridx) & within_canvas
-  }
+  valid <- is.finite(gridx) & within_canvas
 
   res <- data.frame(
     x = gridx[valid],
     y = gridy[valid]
   )
-
-  if (keep_boundary) {
-    res$boundary <- !within_canvas[valid]
-  }
 
   if (keep_idx) {
     res$idx <- io[valid]
@@ -374,11 +257,13 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
 }
 
 
-if (interactive()) {
+
+
+if (FALSE) {
   set.seed(6)
 
   points <- poisson_disc(ncols = 4, nrows = 4, cell_size = 25,
-                                    keep_boundary = TRUE, verbose = TRUE, keep_idx = TRUE)
+                                    verbose = TRUE, keep_idx = TRUE)
 
   points %>% arrange(idx)
 }

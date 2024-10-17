@@ -2,7 +2,7 @@
 % Please edit documentation in R/poisson_disc.R
 \name{poisson_disc}
 \alias{poisson_disc}
-\title{Generate tileable poisson disc samples}
+\title{Generate poisson disc samples}
 \usage{
 poisson_disc(
   ncols = 20L,
@@ -11,9 +11,7 @@ poisson_disc(
   k = 30L,
   xinit = NULL,
   yinit = NULL,
-  tileable = TRUE,
   keep_idx = FALSE,
-  keep_boundary = FALSE,
   verbose = FALSE
 )
 }
@@ -28,13 +26,8 @@ ranges will be x = [0, ncols*cell_size] and y = [0, nrows*cell_size]}
 \item{xinit, yinit}{coordinates of seed point. If either is NULL, then a random point
 will be chosen. Default: NULL}
 
-\item{tileable}{enforce boundary conditions to make point set tileable. default: TRUE}
-
 \item{keep_idx}{return an index indicating the order in which the points were
 calcualted. default: FALSE}
-
-\item{keep_boundary}{keep the boundary condition points used for enforcing
-tileability. This is probably only useful for debugging.  default: FALSE}
 
 \item{verbose}{default: FALSE}
 }
@@ -43,5 +36,5 @@ data.frame with x and y coordinates and the 'idx' order in which
         the points were added.
 }
 \description{
-Generate tileable poisson disc samples
+Generate poisson disc samples
 }
