@@ -5,6 +5,9 @@
 
 <!-- badges: start -->
 
+![](https://img.shields.io/badge/cool-useless-green.svg)
+[![CRAN](https://www.r-pkg.org/badges/version/poissoned)](https://CRAN.R-project.org/package=poissoned)
+[![R-CMD-check](https://github.com/coolbutuseless/poissoned/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/coolbutuseless/poissoned/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 `poissoned` is an Rstats implementation of the poisson disk sampling
@@ -12,16 +15,7 @@ algorithm from [Bridson’s paper - Fast Poisson Disk Sampling in
 Arbitrary
 Dimensions](https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf)
 
-Notes:
-
-  - only implemented the 2d case
-  - adjusted the algorithm in order to ensure repeatable/tileable
-    samples with minimal artifacts at the joins
-  - similar in purpose to [Will Chase’s](https://twitter.com/W_R_Chase)
-    package
-    [{poissondisc}](https://github.com/will-r-chase/poissondisc).
-    However, `poissoned` has a a completely different implementation
-    which ends up being much faster.
+## Multi-dimensional poisson disc sampling
 
 ## Installation
 
@@ -62,6 +56,11 @@ that there should be minimal artifacts at the joins.
 In the graph below, the initial set of points (highlighted in blue) was
 manually replicated and offset eight times.
 
+    #> Warning: `as.tbl()` was deprecated in dplyr 1.0.0.
+    #> ℹ Please use `tibble::as_tibble()` instead.
+    #> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+    #> generated.
+
 <img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
 
 # Tileability - details
@@ -99,8 +98,7 @@ can return the order in which points were generated using the `keep_idx`
 argument.
 
 It is also possible to pass in the seed point to initialise the process.
-If a seed point is not given, then a random point will be
-chosen.
+If a seed point is not given, then a random point will be chosen.
 
 ``` r
 points <- poissoned::poisson_disc(ncols = 120, nrows = 80, cell_size = 10, 

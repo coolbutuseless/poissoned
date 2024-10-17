@@ -6,7 +6,7 @@ Authors@R: c(
     person("Mike", "Cheng", role = c("aut", "cre", 'cph'), email = "mikefc@coolbutuseless.com")
     )
 Maintainer: Mike Cheng <mikefc@coolbutuseless.com>
-Description: Poisson disc sampling
+Description: Poisson disc sampling.
 License: MIT + file LICENSE
 Encoding: UTF-8
 RoxygenNote: 7.3.2

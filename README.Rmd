@@ -21,18 +21,16 @@ suppressPackageStartupMessages({
 # poissoned
 
 <!-- badges: start -->
+![](https://img.shields.io/badge/cool-useless-green.svg)
+[![CRAN](https://www.r-pkg.org/badges/version/poissoned)](https://CRAN.R-project.org/package=poissoned)
+[![R-CMD-check](https://github.com/coolbutuseless/poissoned/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/coolbutuseless/poissoned/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 `poissoned` is an Rstats implementation of the poisson disk sampling algorithm from 
 [Bridson's paper - Fast Poisson Disk Sampling in Arbitrary Dimensions](https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf)
 
-Notes:
 
-* only implemented the 2d case
-* adjusted the algorithm in order to ensure repeatable/tileable samples with 
-  minimal artifacts at the joins
-* similar in purpose to [Will Chase's](https://twitter.com/W_R_Chase) package [{poissondisc}](https://github.com/will-r-chase/poissondisc). However, `poissoned`
-has a a completely different implementation which ends up being much faster.
+## Multi-dimensional poisson disc sampling
 
 
 ## Installation

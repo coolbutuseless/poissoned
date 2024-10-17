@@ -4,9 +4,18 @@
 \alias{poisson_disc}
 \title{Generate tileable poisson disc samples}
 \usage{
-poisson_disc(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
-  xinit = NULL, yinit = NULL, tileable = TRUE, keep_idx = FALSE,
-  keep_boundary = FALSE, verbose = FALSE)
+poisson_disc(
+  ncols = 20L,
+  nrows = 20L,
+  cell_size = 10,
+  k = 30L,
+  xinit = NULL,
+  yinit = NULL,
+  tileable = TRUE,
+  keep_idx = FALSE,
+  keep_boundary = FALSE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{ncols, nrows}{number of cells in x and y direction. Resulting point coordinate
