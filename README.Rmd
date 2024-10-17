@@ -26,11 +26,17 @@ suppressPackageStartupMessages({
 [![R-CMD-check](https://github.com/coolbutuseless/poissoned/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/coolbutuseless/poissoned/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-`poissoned` is an Rstats implementation of the poisson disk sampling algorithm from 
-[Bridson's paper - Fast Poisson Disk Sampling in Arbitrary Dimensions](https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf)
-
 
 ## Multi-dimensional poisson disc sampling
+
+`poissoned` is an R implementation of the poisson disk sampling algorithm from 
+[Bridson's paper - Fast Poisson Disk Sampling in Arbitrary Dimensions](https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf)
+
+### What's in the box
+
+* `poisson2d()` for the 2D case
+* `poisson3d()` for the 3D case
+
 
 
 ## Installation
@@ -49,7 +55,7 @@ devtools::install_github("coolbutuseless/poissoned")
 library(poissoned)
 
 set.seed(1)
-points <- poissoned::poisson_disc(ncols = 50, nrows = 35, cell_size = 10, verbose = TRUE)
+points <- poissoned::poisson2d(ncols = 50, nrows = 35, cell_size = 10, verbosity = 1)
 
 ggplot(points) +
   geom_point(aes(x, y)) +
@@ -66,7 +72,7 @@ ggplot(points) +
 
 # Point discovery order
 
-New points are generated through an iterative process. `poisson_disc()` can
+New points are generated through an iterative process. `poisson2d()` can
 return the order in which points were generated using the `keep_idx` argument.
 
 It is also possible to pass in the seed point to initialise the process. If a
@@ -78,9 +84,9 @@ set.seed(1)
 ```
 
 ```{r discovery_order}
-points <- poissoned::poisson_disc(ncols = 120, nrows = 80, cell_size = 10, 
+points <- poissoned::poisson2d(ncols = 120, nrows = 80, cell_size = 10, 
                                   xinit = 600, yinit = 400,
-                                  keep_idx = TRUE, verbose = TRUE)
+                                  keep_idx = TRUE, verbosity = 1)
 
 nrow(points)
 
@@ -125,9 +131,9 @@ width  <- 150 * 0.9
 height <- 100 * 0.9
 
 set.seed(1)
-points <- poisson_disc(ncols = width, nrows = height, cell_size = 2,
+points <- poisson2d(ncols = width, nrows = height, cell_size = 2,
                        xinit = width, yinit = height,
-                       verbose = TRUE)
+                       verbosity = 1)
 
 points <- points %>% arrange(idx)
 nrow(points)
@@ -161,9 +167,9 @@ zz <- (seq_len(max(points$idx))) %>%
 set.seed(1)
 
 # animated palette
-points <- poissoned::poisson_disc(ncols = 60, nrows = 40, cell_size = 10, 
+points <- poissoned::poisson2d(ncols = 60, nrows = 40, cell_size = 10, 
                                   xinit = 300, yinit = 200,
-                                  keep_idx = TRUE, verbose = TRUE)
+                                  keep_idx = TRUE, verbosity = 1)
 
 dir.create("cycle", showWarnings = FALSE)
 

@@ -11,7 +11,7 @@
 #'        will be chosen. Default: NULL
 #' @param keep_idx return an index indicating the order in which the points were
 #'        calcualted. default: FALSE
-#' @param verbose default: FALSE
+#' @param verbosity Verbosity level. default: 0
 #'
 #' @return data.frame with x and y coordinates and the 'idx' order in which
 #'         the points were added.
@@ -19,9 +19,9 @@
 #' @importFrom stats runif
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
+poisson2d <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
                          xinit = NULL, yinit = NULL,
-                         keep_idx = FALSE, verbose = FALSE) {
+                         keep_idx = FALSE, verbosity = 0L) {
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Output canvas size
@@ -36,8 +36,8 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
   min_dist    <- cell_size * sqrt(2)
   min_dist_sq <- min_dist * min_dist
 
-  if (verbose) {
-    message("poisson_disc(): ", width, "x", height, ", minimum distance = ", round(min_dist, 2))
+  if (verbosity > 0) {
+    message("poisson2d(): ", width, "x", height, ", minimum distance = ", round(min_dist, 2))
   }
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -138,7 +138,7 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # generate k points in the spherical annulus
-    # between r and 2r aroudn this points
+    # between r and 2r around this point
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     mags <- runif(k, min_dist, 2 * min_dist)
     angs <- runif(k,        0, 2 * pi      )
@@ -158,7 +158,7 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
 
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # What are the grid locations of these candiate points?
+    # What are the grid locations of these candidate points?
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     xg   <- gridify(x)
     yg   <- gridify(y)
@@ -177,7 +177,7 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Get all the coordinates at these indices. If there's nothing there, then
-    # the coordiates will be Inf
+    # the coordinates will be Inf
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     xc <- gridx[idxs]
     yc <- gridy[idxs]
@@ -193,7 +193,7 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # For each of the coordinates which are valid, check its grid location,
-    # and it's 8 surrounding neighbours.  If all of them have a distance
+    # and its 8 surrounding neighbours.  If all of them have a distance
     # greater than the minimum distance, then we can locate a point here
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     best_idx <- NA
@@ -262,8 +262,8 @@ poisson_disc <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
 if (FALSE) {
   set.seed(6)
 
-  points <- poisson_disc(ncols = 4, nrows = 4, cell_size = 25,
-                                    verbose = TRUE, keep_idx = TRUE)
+  points <- poisson2d(ncols = 4, nrows = 4, cell_size = 25,
+                                    verbosity = 1, keep_idx = TRUE)
 
   points %>% arrange(idx)
 }

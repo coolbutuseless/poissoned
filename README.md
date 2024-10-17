@@ -10,12 +10,17 @@
 [![R-CMD-check](https://github.com/coolbutuseless/poissoned/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/coolbutuseless/poissoned/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-`poissoned` is an Rstats implementation of the poisson disk sampling
+## Multi-dimensional poisson disc sampling
+
+`poissoned` is an R implementation of the poisson disk sampling
 algorithm from [Bridson’s paper - Fast Poisson Disk Sampling in
 Arbitrary
 Dimensions](https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf)
 
-## Multi-dimensional poisson disc sampling
+### What’s in the box
+
+- `poisson2d()` for the 2D case
+- `poisson3d()` for the 3D case
 
 ## Installation
 
@@ -33,8 +38,8 @@ devtools::install_github("coolbutuseless/poissoned")
 library(poissoned)
 
 set.seed(1)
-points <- poissoned::poisson_disc(ncols = 50, nrows = 35, cell_size = 10, verbose = TRUE)
-#> poisson_disc(): 500x350, minimum distance = 14.14
+points <- poissoned::poisson2d(ncols = 50, nrows = 35, cell_size = 10, verbosity = 1)
+#> poisson2d(): 500x350, minimum distance = 14.14
 
 ggplot(points) +
   geom_point(aes(x, y)) +
@@ -50,18 +55,18 @@ ggplot(points) +
 
 # Point discovery order
 
-New points are generated through an iterative process. `poisson_disc()`
-can return the order in which points were generated using the `keep_idx`
+New points are generated through an iterative process. `poisson2d()` can
+return the order in which points were generated using the `keep_idx`
 argument.
 
 It is also possible to pass in the seed point to initialise the process.
 If a seed point is not given, then a random point will be chosen.
 
 ``` r
-points <- poissoned::poisson_disc(ncols = 120, nrows = 80, cell_size = 10, 
+points <- poissoned::poisson2d(ncols = 120, nrows = 80, cell_size = 10, 
                                   xinit = 600, yinit = 400,
-                                  keep_idx = TRUE, verbose = TRUE)
-#> poisson_disc(): 1200x800, minimum distance = 14.14
+                                  keep_idx = TRUE, verbosity = 1)
+#> poisson2d(): 1200x800, minimum distance = 14.14
 
 nrow(points)
 #> [1] 3257
