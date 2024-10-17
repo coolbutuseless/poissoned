@@ -1,7 +1,11 @@
 .DS_Store
-*~
-*swp
-.Rproj.user
-*.Rproj
 .Rhistory
+*.Rproj
+.Rproj.user
+*.swp
+inst/doc
+doc
+Meta
+pkgdown
 working
+
