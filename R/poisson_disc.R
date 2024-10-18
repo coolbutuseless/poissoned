@@ -2,11 +2,16 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Poisson sampling in 2 or 3 dimensions
 #' 
+#' @param w,h width and height of area
+#' @param r minimum radius between points
+#' @param k number of points to try at each site
+#' @param seed random seed
+#'
 #' @return None
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-cpoisson <- function() {
-  .Call(poisson_)
+cpoisson <- function(w, h, r, k = 30, seed = 2024) {
+  .Call(poisson_, w, h, r, k, seed)
 }
 
 

@@ -4,7 +4,16 @@
 \alias{cpoisson}
 \title{Poisson sampling in 2 or 3 dimensions}
 \usage{
-cpoisson()
+cpoisson(w, h, r, k = 30, seed = 2024)
+}
+\arguments{
+\item{w, h}{width and height of area}
+
+\item{r}{minimum radius between points}
+
+\item{k}{number of points to try at each site}
+
+\item{seed}{random seed}
 }
 \value{
 None

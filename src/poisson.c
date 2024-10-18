@@ -12,22 +12,39 @@
 #define TPH_POISSON_IMPLEMENTATION
 #include "tph_poisson.h"
 
-SEXP poisson_(void) {
+SEXP poisson_(SEXP w_, SEXP h_, SEXP r_, SEXP k_, SEXP seed_) {
   
   int nprotect = 0;
   
+  double w = asReal(w_);
+  double h = asReal(h_);
+  double r = asReal(r_);
+  if (w <= 0 || h <= 0 || r <= 0) {
+    error("'w', 'h' and 'r' should all be positive");
+  }
+  
+  int k = asInteger(k_);
+  if (k < 0) {
+    error("'k' should not be negative");
+  }
+  uint64_t seed = (uint64_t)asInteger(seed_);
+  
+  
+  
   // Configure arguments. 
-  const tph_poisson_real bounds_min[2] = { (tph_poisson_real)-10, (tph_poisson_real)-10 };
-  const tph_poisson_real bounds_max[2] = { (tph_poisson_real) 10, (tph_poisson_real) 10 };
+  const tph_poisson_real bounds_min[2] = { w , h };
+  const tph_poisson_real bounds_max[2] = {  w*2 ,  h*2 };
   
   const tph_poisson_args args = { 
     .bounds_min          = bounds_min,
     .bounds_max          = bounds_max,
-    .radius              = (tph_poisson_real)3,
+    .radius              = r,
     .ndims               = INT32_C(2),
-    .max_sample_attempts = UINT32_C(30),
-    .seed                = UINT64_C(1981) 
+    .max_sample_attempts = (uint32_t)k,
+    .seed                = seed 
   };
+  
+  
   
   // Using default allocator (libc malloc).
   const tph_poisson_allocator *alloc = NULL;

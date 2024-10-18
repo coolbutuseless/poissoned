@@ -3,10 +3,10 @@
 #include <R.h>
 #include <Rinternals.h>
 
-SEXP poisson_(void);
+SEXP poisson_(SEXP w_, SEXP h_, SEXP r_, SEXP k_, SEXP seed_);
 
 static const R_CallMethodDef CEntries[] = {
-  {"poisson_", (DL_FUNC) &poisson_, 0},
+  {"poisson_", (DL_FUNC) &poisson_, 5},
   {NULL , NULL, 0}
 };
 
