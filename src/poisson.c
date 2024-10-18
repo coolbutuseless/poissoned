@@ -32,8 +32,8 @@ SEXP poisson_(SEXP w_, SEXP h_, SEXP r_, SEXP k_, SEXP seed_) {
   
   
   // Configure arguments. 
-  const tph_poisson_real bounds_min[2] = { w , h };
-  const tph_poisson_real bounds_max[2] = {  w*2 ,  h*2 };
+  const tph_poisson_real bounds_min[2] = { -w/2 , -h/2 };
+  const tph_poisson_real bounds_max[2] = {  w/2 ,  h/2 };
   
   const tph_poisson_args args = { 
     .bounds_min          = bounds_min,
