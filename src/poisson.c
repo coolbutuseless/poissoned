@@ -151,6 +151,95 @@ int random_active(active_t *active, int *active_idx) {
 }
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Grid handling
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+typedef struct {
+  int *val;
+  int nrow;
+  int ncol;
+  double cell_size;
+} grid_t;
+
+
+void init_grid(grid_t *grid, int ncol, int nrow, double cell_size) {
+  grid->ncol = ncol;
+  grid->nrow = nrow;
+  grid->cell_size = cell_size;
+  grid->val = malloc(ncol * nrow * sizeof(int));
+  if (grid->val == NULL) {
+    error("grid allocation failed");
+  }
+  for (int i = 0; i < ncol * nrow; i++) {
+    grid->val[i] = -1;
+  }
+}
+
+void free_grid(grid_t *grid) {
+  if (grid == NULL) return;
+  free(grid->val);
+}
+
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
+
+
+
+bool valid_point(double x, double y, grid_t *grid, points_t *p, double r) {
+  
+  int col = (int)floor(x / grid->cell_size);
+  int row = (int)floor(y / grid->cell_size);
+  
+  if (grid->val[row * grid->ncol + col] >= 0) {
+    // Already a point here
+    return false;
+  }
+  
+  int min_row = MAX(0             , row - 1);
+  int max_row = MIN(grid->nrow - 1, row + 1);
+  
+  int min_col = MAX(0             , col - 1);
+  int max_col = MIN(grid->ncol - 1, col + 1);
+  
+  for (int this_row = min_row; this_row <= max_row; this_row++) {
+    for (int this_col = min_col; this_col <= max_col; this_col++) {
+      int point_idx = grid->val[this_row * grid->ncol + this_col];
+      if (point_idx >= 0) {
+        // There's a point at this grid square
+        double this_x = p->x[point_idx];
+        double this_y = p->y[point_idx];
+        double dist = (x - this_x) * (x - this_x) + (y - this_y) * (y - this_y);
+        if (dist < r *r) {
+          return false;
+        }
+      }
+      
+      
+    }
+  }
+  
+  
+  return true;
+}
+
+
+void set_grid(grid_t *grid, int point_idx, double x, double y) {
+  
+  int col = (int)floor(x / grid->cell_size);
+  int row = (int)floor(y / grid->cell_size);
+  
+  int grid_idx = row * grid->ncol + col;
+  if (grid_idx >= grid->ncol * grid->nrow) {
+    error("OOB: %i x %i =>  %i / %i\n", grid->nrow, grid->ncol, grid_idx, grid->nrow * grid->ncol);
+  }
+  if (grid->val[grid_idx] >= 0) {
+    error("set_grid point already exists: [%i, %i] => %i", row, col, grid->val[grid_idx] );
+  }
+  
+  grid->val[grid_idx] = point_idx;
+}
+
+
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -163,7 +252,6 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
   int w     = asInteger(w_);
   int h     = asInteger(h_);
   double r  = asReal(r_);
-  // double r2 = r * r;
   // int k     = asInteger(k_);
   double cell_size = r/M_SQRT2;
   
@@ -176,56 +264,77 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Initialise an empty grid
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int *grid = malloc(ncol * nrow * sizeof(int));
-  if (grid == NULL) error("Malloc failed: grid");
-  for (int i = 0; i < ncol * nrow; i++) {
-    grid[i] = -1;
-  }
-  
+  grid_t grid = {0};
+  init_grid(&grid, ncol, nrow, cell_size);
+
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Initialise points
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   points_t p = { 0 };
   init_points(&p);
   
-  for (int i = 0; i < 10; i++) {
-    add_point(&p, (double)i, (double)(i + 1));
-  }
+  // for (int i = 0; i < 10; i++) {
+  //   add_point(&p, (double)i, (double)(i + 1));
+  // }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Initialise active list
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   active_t active = {0};
   init_active(&active);
-  add_active(&active, 0);
-  add_active(&active, 1);
-  add_active(&active, 2);
-  add_active(&active, 3);
-  add_active(&active, 4);
+  // add_active(&active, 0);
+  // add_active(&active, 1);
+  // add_active(&active, 2);
+  // add_active(&active, 3);
+  // add_active(&active, 4);
+  // 
+  // for (int i = 0; i < 10; i++) {
+  //   int active_idx = 0;
+  //   int point_idx = random_active(&active, &active_idx);
+  //   Rprintf("Sample: [%i] = %i\n", active_idx, point_idx);
+  // }  
+  // 
+  // Rprintf("\n");
+  // remove_active(&active, 2);
+  // 
+  // for (int i = 0; i < 10; i++) {
+  //   int active_idx = 0;
+  //   int point_idx = random_active(&active, &active_idx);
+  //   Rprintf("Sample: [%i] = %i\n", active_idx, point_idx);
+  // }  
+  // 
+  // Rprintf("\n");
+  // remove_active(&active, 0);
+  // 
+  // for (int i = 0; i < 10; i++) {
+  //   int active_idx = 0;
+  //   int point_idx = random_active(&active, &active_idx);
+  //   Rprintf("Sample: [%i] = %i\n", active_idx, point_idx);
+  // }  
   
-  for (int i = 0; i < 10; i++) {
-    int active_idx = 0;
-    int point_idx = random_active(&active, &active_idx);
-    Rprintf("Sample: [%i] = %i\n", active_idx, point_idx);
-  }  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Set seed point
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  rng_buffer_t rng;
   
-  Rprintf("\n");
-  remove_active(&active, 2);
+  double xinit = w/2 + runif(&rng);
+  double yinit = h/2 + runif(&rng); 
   
-  for (int i = 0; i < 10; i++) {
-    int active_idx = 0;
-    int point_idx = random_active(&active, &active_idx);
-    Rprintf("Sample: [%i] = %i\n", active_idx, point_idx);
-  }  
+  int point_idx = add_point(&p, xinit, yinit);
+  set_grid(&grid, point_idx, xinit, yinit);
+  add_active(&active, point_idx);
   
-  Rprintf("\n");
-  remove_active(&active, 0);
+  Rprintf("Active idx: %i\n", active.idx);
+  // Pick a random active site
+  // Generate 'k' random points
+  //   for each point
+  //      if valid(point)
+  //          add point to point list
+  //          add point to grid
+  //          add point to active list
+  //   if no point was valid
+  //      remove point from active list
   
-  for (int i = 0; i < 10; i++) {
-    int active_idx = 0;
-    int point_idx = random_active(&active, &active_idx);
-    Rprintf("Sample: [%i] = %i\n", active_idx, point_idx);
-  }  
   
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -250,6 +359,7 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   free_points(&p);
   free_active(&active);
+  free_grid(&grid);
   UNPROTECT(nprotect);
   return res_;
 }
