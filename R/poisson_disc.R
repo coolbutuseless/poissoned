@@ -3,14 +3,9 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Generate poisson disc samples
 #'
-#' @param ncols,nrows number of cells in x and y direction. Resulting point coordinate
-#'        ranges will be x = [0, ncols*cell_size] and y = [0, nrows*cell_size]
-#' @param cell_size length of side of an individual cell
+#' @param w,h width and height of region
+#' @param r minimum distance between points
 #' @param k number of sample points to generate at each iteration. default 30
-#' @param xinit,yinit coordinates of seed point. If either is NULL, then a random point
-#'        will be chosen. Default: NULL
-#' @param keep_idx return an index indicating the order in which the points were
-#'        calcualted. default: FALSE
 #' @param verbosity Verbosity level. default: 0
 #'
 #' @return data.frame with x and y coordinates and the 'idx' order in which
@@ -19,22 +14,17 @@
 #' @importFrom stats runif
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-poisson2d <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
-                         xinit = NULL, yinit = NULL,
-                         keep_idx = FALSE, verbosity = 0L) {
+poisson2d <- function(w = 400, h = 300, r = 10, k = 30L, verbosity = 0L) {
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Output canvas size
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  width    <- cell_size * ncols
-  height   <- cell_size * nrows
-
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Use the squared distance as comparison to save on doing a sqrt() later
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  min_dist    <- cell_size * sqrt(2)
+  
+  width       <- w
+  height      <- h
+  min_dist    <- r
   min_dist_sq <- min_dist * min_dist
+  cell_size   <- min_dist/sqrt(2)
+  
+  ncols <- ceiling(width  / cell_size)
+  nrows <- ceiling(height / cell_size)
 
   if (verbosity > 0) {
     message("poisson2d(): ", width, "x", height, ", minimum distance = ", round(min_dist, 2))
@@ -63,9 +53,8 @@ poisson2d <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
   gridy <- matrix(Inf, nrow = rows, ncol = cols)
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Keep track of point insertion order 'io'
+  # Keep track of point info
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  io <- matrix(0L, nrow = rows, ncol = cols)
   N  <- 0L
 
 
@@ -84,20 +73,14 @@ poisson2d <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
   # centre to avoid some edge cases that aren't handled here (because this
   # first point is not (currently) mirrored for the boundary conditions)
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (is.null(xinit) | is.null(yinit)) {
-    x <- runif(1, 0.25 * width , 0.75 * width )
-    y <- runif(1, 0.25 * height, 0.75 * height)
-  } else {
-    x <- xinit
-    y <- yinit
-  }
+  x <- runif(1, 0.45 * width , 0.55 * width )
+  y <- runif(1, 0.45 * height, 0.55 * height)
 
   xg <- gridify(x)
   yg <- gridify(y)
 
   gridx[cbind(yg, xg)] <- x
   gridy[cbind(yg, xg)] <- y
-  io   [cbind(yg, xg)] <- seq_along(x)
   N                    <- length(x)
 
 
@@ -230,7 +213,6 @@ poisson2d <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
     gridx [gidx] <- xb
     gridy [gidx] <- yb
     N            <- N + 1L
-    io    [gidx] <- N
 
     actlist[[length(actlist) + 1L]] <- gidx
   } # End of while() loop
@@ -248,10 +230,6 @@ poisson2d <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
     y = gridy[valid]
   )
 
-  if (keep_idx) {
-    res$idx <- io[valid]
-  }
-
 
   res
 }
@@ -262,10 +240,8 @@ poisson2d <- function(ncols = 20L, nrows = 20L, cell_size = 10, k = 30L,
 if (FALSE) {
   set.seed(6)
 
-  points <- poisson2d(ncols = 4, nrows = 4, cell_size = 25,
-                                    verbosity = 1, keep_idx = TRUE)
-
-  points %>% arrange(idx)
+  points <- poisson2d(100, 50, r = 5)
+  plot(points, pch = 19)
 }
 
 

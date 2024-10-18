@@ -4,30 +4,14 @@
 \alias{poisson2d}
 \title{Generate poisson disc samples}
 \usage{
-poisson2d(
-  ncols = 20L,
-  nrows = 20L,
-  cell_size = 10,
-  k = 30L,
-  xinit = NULL,
-  yinit = NULL,
-  keep_idx = FALSE,
-  verbosity = 0L
-)
+poisson2d(w = 400, h = 300, r = 10, k = 30L, verbosity = 0L)
 }
 \arguments{
-\item{ncols, nrows}{number of cells in x and y direction. Resulting point coordinate
-ranges will be x = [0, ncols*cell_size] and y = [0, nrows*cell_size]}
+\item{w, h}{width and height of region}
 
-\item{cell_size}{length of side of an individual cell}
+\item{r}{minimum distance between points}
 
 \item{k}{number of sample points to generate at each iteration. default 30}
-
-\item{xinit, yinit}{coordinates of seed point. If either is NULL, then a random point
-will be chosen. Default: NULL}
-
-\item{keep_idx}{return an index indicating the order in which the points were
-calcualted. default: FALSE}
 
 \item{verbosity}{Verbosity level. default: 0}
 }
