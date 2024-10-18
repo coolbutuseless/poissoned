@@ -6,7 +6,7 @@
 SEXP poisson_(void);
 
 static const R_CallMethodDef CEntries[] = {
-  {"poisson_", (DL_FUNC) &poisson_, 1},
+  {"poisson_", (DL_FUNC) &poisson_, 0},
   {NULL , NULL, 0}
 };
 

@@ -5,7 +5,7 @@
 #' @return None
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-poisson <- function() {
+cpoisson <- function() {
   .Call(poisson_)
 }
 

@@ -39,7 +39,7 @@ extern "C" {
 #endif
 #if !defined(TPH_POISSON_REAL_TYPE) && !defined(TPH_POISSON_SQRT) && !defined(TPH_POISSON_CEIL) \
   && !defined(TPH_POISSON_FLOOR)
-#define TPH_POISSON_REAL_TYPE float
+#define TPH_POISSON_REAL_TYPE double
 #include <math.h>
 #define TPH_POISSON_SQRT  sqrtf
 #define TPH_POISSON_CEIL  ceilf
