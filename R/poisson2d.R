@@ -1,6 +1,20 @@
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' @rdname poisson2d
+#' Generate poisson disc samples
+#'
+#' @param w,h width and height of region
+#' @param r minimum distance between points
+#' @param k number of sample points to generate at each iteration. default 30
+#' @param verbosity Verbosity level. default: 0
+#'
+#' @return data.frame with x and y coordinates and the 'idx' order in which
+#'         the points were added.
+#' @examples
+#' cpoisson2d()
+#' cpoisson2d()
+#' cpoisson2d()
+#' 
+#' @importFrom stats runif
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 cpoisson2d <- function(w = 400, h = 300, r = 10, k = 30L, verbosity = 0L) {
@@ -250,6 +264,26 @@ if (FALSE) {
 
   points <- poisson2d(100, 50, r = 5)
   plot(points, pch = 19)
+}
+
+
+if (FALSE) {
+  
+  for (i in 1:100) {
+    message(i)
+    set.seed(i)
+    # Sys.sleep(0.2)
+    cpoisson2d()
+  }
+  
+  
+  bench::mark(
+    poisson2d(r = 4),
+    cpoisson2d(r = 4),
+    check = FALSE
+  )
+  
+  
 }
 
 

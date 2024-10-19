@@ -21,14 +21,12 @@ typedef struct {
 
 double runif(rng_buffer_t *rng) {
   
-  if (rng->idx < 0 || rng->idx >= RNGBUFSIZE) {
+  if (rng->idx <= 0 || rng->idx >= RNGBUFSIZE) {
     GetRNGstate();
     for (int i = 0; i < RNGBUFSIZE; i++) {
       rng->buf[i] = unif_rand();
     }
     PutRNGstate();
-    
-    
     rng->idx = 0;
   }
   
@@ -190,7 +188,7 @@ bool valid_point(double x, double y, grid_t *grid, points_t *p, double r) {
   int col = (int)floor(x / grid->cell_size);
   int row = (int)floor(y / grid->cell_size);
   
-  if (col >= grid->ncol || row >= grid->nrow) {
+  if (col >= grid->ncol || row >= grid->nrow || col < 0 || row < 0) {
     error("valid_point invalid [%i, %i] (%.2f, %.2f)", col, row, x, y);
   }
   
@@ -229,14 +227,10 @@ bool valid_point(double x, double y, grid_t *grid, points_t *p, double r) {
 
 void set_grid(grid_t *grid, int point_idx, double x, double y) {
   
-  if (x >= 400 || y >= 300) {
-    error("WTF: (%.2f, %.2f)", x, y);
-  }
-  
   int col = (int)floor(x / grid->cell_size);
   int row = (int)floor(y / grid->cell_size);
   
-  if (col >= grid->ncol || row >= grid->nrow) {
+  if (col >= grid->ncol || row >= grid->nrow || col < 0 || row < 0) {
     error("set_grid invalid [%i, %i] (%.2f, %.2f)", col, row, x, y);
   }
   
@@ -289,11 +283,23 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Set seed point
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  rng_buffer_t rng;
+  // rng_buffer_t rng;
   
-  double xinit = w/2 + runif(&rng);
-  double yinit = h/2 + runif(&rng);
-  // Rprintf("(%.2f, %.2f) Init\n", xinit, yinit);
+  // for (int i = 0; i < 10000; i++) {
+  //   double val = runif(&rng);
+  //   Rprintf("%.2f ", val);
+  //   if (val > 1 || val < 0) error("\n\nWTF\n\n");
+  // }
+  // Rprintf("\n");
+  // return R_NilValue;
+  
+  GetRNGstate();
+  double v1 = unif_rand();
+  double v2 = unif_rand();
+  PutRNGstate();
+  double xinit = (double)w/2.0 + v1;
+  double yinit = (double)h/2.0 + v2;
+  // Rprintf("(%.2f, %.2f) Init [%.2f, %.2f]\n", xinit, yinit, v1, v2);
   
   int point_idx = add_point(&p, xinit, yinit);
   set_grid(&grid, point_idx, xinit, yinit);
@@ -309,8 +315,8 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
   //   if no point was valid
   //      remove point from active list
   
-  for (int ll = 0; ll < 2800; ll++) {
-    if (active.idx == 0) break;
+  while (active.idx > 0) {
+    // if (active.idx == 0) break;
     int active_idx = 0;
     point_idx = random_active(&active, &active_idx);
     double x0 = p.x[point_idx];
@@ -319,9 +325,18 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
     
     bool found = false;
     for (int i = 0; i < k; i++) {
-      double theta = 2 * M_PI * runif(&rng);
-      double x = x0 + (r + 0.00001) * cos( theta );
-      double y = y0 + (r + 0.00001) * sin( theta );
+      
+      // Random point in annulus [r, 2r] around (x0, y0)
+      GetRNGstate();
+      double theta = 2 * M_PI * unif_rand(); //runif(&rng);
+      double rand = unif_rand();
+      PutRNGstate();
+      // Uniform random sampling on an annulus
+      double dist = sqrt(rand * (2*r * 2*r - r*r) + r*r);
+      // double x = x0 + (r + 0.00001) * cos( theta );
+      // double y = y0 + (r + 0.00001) * sin( theta );
+      double x = x0 + dist * cos( theta );
+      double y = y0 + dist * sin( theta );
       
       if (x >= w || y >= h || x < 0 || y < 0) continue;
       
