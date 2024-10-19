@@ -288,9 +288,11 @@ void set_grid(grid_t *grid, int point_idx, double x, double y, double z) {
 // @param r minimum separation
 // @param k points to try 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
+SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_, SEXP verbosity_) {
   
   int nprotect = 0;
+  
+  int verbosity = asInteger(verbosity_);
   
   int w     = asInteger(w_);
   int h     = asInteger(h_);
@@ -349,7 +351,10 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
     point_idx = random_active(&active, &active_idx);
     double x0 = p.x[point_idx];
     double y0 = p.y[point_idx];
-    // Rprintf("Active [%i]   point [%i] (%.2f, %.2f)\n", active.idx, point_idx, x0, y0);
+    
+    if (verbosity > 0) {
+      Rprintf("Active [%i]   point [%i] (%.2f, %.2f)\n", active.idx, point_idx, x0, y0);
+    }
     
     bool found = false;
     for (int i = 0; i < k; i++) {
@@ -424,9 +429,11 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
 // @param r minimum separation
 // @param k points to try 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP poisson3d_(SEXP w_, SEXP h_, SEXP d_, SEXP r_, SEXP k_) {
+SEXP poisson3d_(SEXP w_, SEXP h_, SEXP d_, SEXP r_, SEXP k_, SEXP verbosity_) {
   
   int nprotect = 0;
+  
+  int verbosity = asInteger(verbosity_);
   
   int w     = asInteger(w_);
   int h     = asInteger(h_);
@@ -490,7 +497,10 @@ SEXP poisson3d_(SEXP w_, SEXP h_, SEXP d_, SEXP r_, SEXP k_) {
     double x0 = p.x[point_idx];
     double y0 = p.y[point_idx];
     double z0 = p.z[point_idx];
-    // Rprintf("Active [%i]   point [%i] (%.2f, %.2f)\n", active.idx, point_idx, x0, y0);
+    
+    if (verbosity > 0) {
+      Rprintf("Active [%i]   point [%i] (%.2f, %.2f, %.2f)\n", active.idx, point_idx, x0, y0, z0);
+    }
     
     bool found = false;
     for (int i = 0; i < k; i++) {

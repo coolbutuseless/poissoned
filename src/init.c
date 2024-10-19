@@ -3,12 +3,12 @@
 #include <R.h>
 #include <Rinternals.h>
 
-SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_);
-SEXP poisson3d_(SEXP w_, SEXP h_, SEXP d_, SEXP r_, SEXP k_);
+SEXP poisson2d_(SEXP w_, SEXP h_,          SEXP r_, SEXP k_, SEXP verbosity_);
+SEXP poisson3d_(SEXP w_, SEXP h_, SEXP d_, SEXP r_, SEXP k_, SEXP verbosity_);
 
 static const R_CallMethodDef CEntries[] = {
-  {"poisson2d_", (DL_FUNC) &poisson2d_, 4},
-  {"poisson3d_", (DL_FUNC) &poisson3d_, 5},
+  {"poisson2d_", (DL_FUNC) &poisson2d_, 5},
+  {"poisson3d_", (DL_FUNC) &poisson3d_, 6},
   {NULL , NULL, 0}
 };
 
