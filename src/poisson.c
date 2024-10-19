@@ -416,3 +416,152 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
   return res_;
 }
 
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Poisson in 2d
+// @param w,h dimensions of grid
+// @param r minimum separation
+// @param k points to try 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SEXP poisson3d_(SEXP w_, SEXP h_, SEXP d_, SEXP r_, SEXP k_) {
+  
+  int nprotect = 0;
+  
+  int w     = asInteger(w_);
+  int h     = asInteger(h_);
+  int d     = asInteger(d_);
+  double r  = asReal(r_);
+  int k     = asInteger(k_);
+  double cell_size = r/sqrt(3);
+  
+  
+  int ncol = (int)ceil(w / cell_size);
+  int nrow = (int)ceil(h / cell_size);
+  int npln = (int)ceil(d / cell_size);
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Initialise 
+  //    Points list
+  //    Grid structure
+  //    Active list
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  points_t p = { 0 };
+  init_points(&p);
+  
+  grid_t grid = {0};
+  init_grid(&grid, ncol, nrow, npln, cell_size);
+  
+  active_t active = {0};
+  init_active(&active);
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Set seed point
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  GetRNGstate();
+  double v1 = unif_rand();
+  double v2 = unif_rand();
+  double v3 = unif_rand();
+  PutRNGstate();
+  double xinit = (double)w/2.0 + v1;
+  double yinit = (double)h/2.0 + v2;
+  double zinit = (double)d/2.0 + v3;
+  // Rprintf("(%.2f, %.2f) Init [%.2f, %.2f]\n", xinit, yinit, v1, v2);
+  
+  int point_idx = add_point(&p, xinit, yinit, zinit);
+  set_grid(&grid, point_idx, xinit, yinit, zinit);
+  add_active(&active, point_idx);
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Pick a random active site
+  // Generate 'k' random points
+  //   for each point
+  //      if valid(point)
+  //          add point to point list
+  //          add point to grid
+  //          add point to active list
+  //   if no point was valid
+  //      remove point from active list
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  while (active.idx > 0) {
+    // if (active.idx == 0) break;
+    int active_idx = 0;
+    point_idx = random_active(&active, &active_idx);
+    double x0 = p.x[point_idx];
+    double y0 = p.y[point_idx];
+    double z0 = p.z[point_idx];
+    // Rprintf("Active [%i]   point [%i] (%.2f, %.2f)\n", active.idx, point_idx, x0, y0);
+    
+    bool found = false;
+    for (int i = 0; i < k; i++) {
+      
+      // Uniform random sampling on an annulus
+      // Random point in annulus [r, 2r] around (x0, y0)
+      GetRNGstate();
+      double x = norm_rand();
+      double y = norm_rand();
+      double z = norm_rand();
+      PutRNGstate();
+      double len = sqrt(x*x + y*y + z*z);
+      // double x = x0 + (r + 0.00001) * cos( theta );
+      // double y = y0 + (r + 0.00001) * sin( theta );
+      x = x/len * (r + 0.01) + x0;
+      y = y/len * (r + 0.01) + y0;
+      z = z/len * (r + 0.01) + z0;
+      
+      
+      if (x >= w || y >= h || z >= d ||  x < 0 || y < 0 || z < 0) continue;
+      
+      bool valid = valid_point(x, y, z, &grid, &p, r);
+      if (valid) {
+        // Rprintf("(%.2f, %.2f) valid\n", x, y);
+        int new_point_idx = add_point(&p, x, y, z);
+        add_active(&active, new_point_idx);
+        set_grid(&grid, new_point_idx, x, y, z);
+        found = true;
+        break;
+      }
+    }
+    
+    if (!found) {
+      // No valid point was found around this seed point
+      // remove it from the Active list 
+      // i.e. consider it "done"
+      remove_active(&active, active_idx);
+    }
+  }
+  
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Copy points to R structure
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SEXP res_ = PROTECT(allocVector(VECSXP, 3)); nprotect++;
+  SEXP nms_ = PROTECT(allocVector(STRSXP, 3)); nprotect++;
+  SET_STRING_ELT(nms_, 0, mkChar("x"));
+  SET_STRING_ELT(nms_, 1, mkChar("y"));
+  SET_STRING_ELT(nms_, 2, mkChar("z"));
+  setAttrib(res_, R_NamesSymbol, nms_);
+  
+  SEXP x_ = PROTECT(allocVector(REALSXP, p.idx)); nprotect++;
+  SEXP y_ = PROTECT(allocVector(REALSXP, p.idx)); nprotect++;
+  SEXP z_ = PROTECT(allocVector(REALSXP, p.idx)); nprotect++;
+  SET_VECTOR_ELT(res_, 0, x_);
+  SET_VECTOR_ELT(res_, 1, y_);
+  SET_VECTOR_ELT(res_, 2, z_);
+  
+  memcpy(REAL(x_), p.x, p.idx * sizeof(double));
+  memcpy(REAL(y_), p.y, p.idx * sizeof(double));
+  memcpy(REAL(z_), p.z, p.idx * sizeof(double));
+  
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Tidy and return
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  free_points(&p);
+  free_active(&active);
+  free_grid(&grid);
+  UNPROTECT(nprotect);
+  return res_;
+}
+
+

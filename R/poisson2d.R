@@ -22,6 +22,41 @@ cpoisson2d <- function(w = 400, h = 300, r = 10, k = 30L, verbosity = 0L) {
 }
 
 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Generate poisson disc samples in 3D
+#'
+#' @param w,h,d width and height and depth of region
+#' @param r minimum distance between points
+#' @param k number of sample points to generate at each iteration. default 30
+#' @param verbosity Verbosity level. default: 0
+#'
+#' @return data.frame with x and y coordinates and the 'idx' order in which
+#'         the points were added.
+#' @examples
+#' cpoisson2d()
+#' cpoisson2d()
+#' cpoisson2d()
+#' 
+#' @importFrom stats runif
+#' @export
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cpoisson3d <- function(w = 400, h = 300, d = 100, r = 10, k = 30L, verbosity = 0L) {
+  .Call(poisson3d_, w, h, d, r, k) 
+}
+
+
+if (FALSE) {
+  
+  pts <- cpoisson3d(10, 10, 10, 1)
+  cols <- rainbow(length(pts$x))
+  rgl::points3d(pts, color = cols)
+  rgl::box3d()
+  
+}
+
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Generate poisson disc samples
 #'
