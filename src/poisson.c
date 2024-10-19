@@ -19,6 +19,7 @@
 typedef struct {
   double *x;
   double *y;
+  double *z;
   int capacity;
   int idx;
 } points_t;
@@ -32,7 +33,8 @@ void init_points(points_t *p) {
   p->capacity = 32;
   p->x = malloc(p->capacity * sizeof(double));
   p->y = malloc(p->capacity * sizeof(double));
-  if (p->x == NULL || p->y == NULL) {
+  p->z = malloc(p->capacity * sizeof(double));
+  if (p->x == NULL || p->y == NULL || p->z == NULL) {
     error("Couldn't initialise points");
   }
 }
@@ -41,19 +43,21 @@ void init_points(points_t *p) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Points add
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-int add_point(points_t *p, double x, double y) {
+int add_point(points_t *p, double x, double y, double z) {
   
   if (p->idx >= p->capacity) {
     p->capacity *= 2;
     p->x = realloc(p->x, p->capacity * sizeof(double));
     p->y = realloc(p->y, p->capacity * sizeof(double));
-    if (p->x == NULL || p->y == NULL) {
+    p->z = realloc(p->z, p->capacity * sizeof(double));
+    if (p->x == NULL || p->y == NULL || p->z == NULL) {
       error("Couldn't reallocate points");
     }
   }
   
   p->x[p->idx] = x;
   p->y[p->idx] = y;
+  p->z[p->idx] = z;
   p->idx++;
   
   return p->idx - 1;
@@ -68,6 +72,7 @@ void free_points(points_t *p) {
   
   free(p->x);
   free(p->y);
+  free(p->z);
 }
 
 
@@ -163,6 +168,7 @@ typedef struct {
   int *val;
   int nrow;
   int ncol;
+  int nplanes;
   double cell_size;
 } grid_t;
 
@@ -170,15 +176,16 @@ typedef struct {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Grid: init
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void init_grid(grid_t *grid, int ncol, int nrow, double cell_size) {
-  grid->ncol = ncol;
-  grid->nrow = nrow;
+void init_grid(grid_t *grid, int ncol, int nrow, int nplanes, double cell_size) {
+  grid->ncol      = ncol;
+  grid->nrow      = nrow;
+  grid->nplanes   = nplanes;
   grid->cell_size = cell_size;
-  grid->val = malloc(ncol * nrow * sizeof(int));
+  grid->val = malloc(ncol * nrow * nplanes * sizeof(int));
   if (grid->val == NULL) {
     error("grid allocation failed");
   }
-  for (int i = 0; i < ncol * nrow; i++) {
+  for (int i = 0; i < ncol * nrow * nplanes; i++) {
     grid->val[i] = -1;
   }
 }
@@ -198,16 +205,17 @@ void free_grid(grid_t *grid) {
 //   i.e. doesn't already have a point at this grid location
 //        is greater than 'r' from all nearby points
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-bool valid_point(double x, double y, grid_t *grid, points_t *p, double r) {
+bool valid_point(double x, double y, double z, grid_t *grid, points_t *p, double r) {
   
   int col = (int)floor(x / grid->cell_size);
   int row = (int)floor(y / grid->cell_size);
+  int pln = (int)floor(z / grid->cell_size);
   
-  if (col >= grid->ncol || row >= grid->nrow || col < 0 || row < 0) {
+  if (col >= grid->ncol || row >= grid->nrow || pln >= grid->nplanes || col < 0 || row < 0|| pln < 0) {
     error("valid_point invalid [%i, %i] (%.2f, %.2f)", col, row, x, y);
   }
   
-  if (grid->val[row * grid->ncol + col] >= 0) {
+  if (grid->val[(grid->ncol * grid->nrow) * pln + row * grid->ncol + col] >= 0) {
     // Already a point here
     return false;
   }
@@ -218,20 +226,28 @@ bool valid_point(double x, double y, grid_t *grid, points_t *p, double r) {
   int min_col = MAX(0             , col - 2);
   int max_col = MIN(grid->ncol - 1, col + 2);
   
-  for (int this_row = min_row; this_row <= max_row; this_row++) {
-    for (int this_col = min_col; this_col <= max_col; this_col++) {
-      int point_idx = grid->val[this_row * grid->ncol + this_col];
-      if (point_idx >= 0) {
-        // There's a point at this grid square
-        double this_x = p->x[point_idx];
-        double this_y = p->y[point_idx];
-        double dist = (x - this_x) * (x - this_x) + (y - this_y) * (y - this_y);
-        if (dist < r *r) {
-          return false;
+  int min_pln = MAX(0                , pln - 2);
+  int max_pln = MIN(grid->nplanes - 1, pln + 2);
+  
+  for (int this_pln = min_pln; this_pln <= max_pln; this_pln++) {
+    for (int this_row = min_row; this_row <= max_row; this_row++) {
+      for (int this_col = min_col; this_col <= max_col; this_col++) {
+        int point_idx = grid->val[this_pln * (grid->ncol * grid->nrow) + this_row * grid->ncol + this_col];
+        if (point_idx >= 0) {
+          // There's a point at this grid square
+          double this_x = p->x[point_idx];
+          double this_y = p->y[point_idx];
+          double this_z = p->z[point_idx];
+          double dist = 
+            (x - this_x) * (x - this_x) + 
+            (y - this_y) * (y - this_y) + 
+            (z - this_z) * (z - this_z);
+          if (dist < r * r) {
+            return false;
+          }
         }
+        
       }
-      
-      
     }
   }
   
@@ -242,17 +258,18 @@ bool valid_point(double x, double y, grid_t *grid, points_t *p, double r) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Grid: add a point
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void set_grid(grid_t *grid, int point_idx, double x, double y) {
+void set_grid(grid_t *grid, int point_idx, double x, double y, double z) {
   
   int col = (int)floor(x / grid->cell_size);
   int row = (int)floor(y / grid->cell_size);
+  int pln = (int)floor(z / grid->cell_size);
   
-  if (col >= grid->ncol || row >= grid->nrow || col < 0 || row < 0) {
+  if (col >= grid->ncol || row >= grid->nrow || pln >= grid->nplanes || col < 0 || row < 0 || pln < 0) {
     error("set_grid invalid [%i, %i] (%.2f, %.2f)", col, row, x, y);
   }
   
-  int grid_idx = row * grid->ncol + col;
-  if (grid_idx >= grid->ncol * grid->nrow) {
+  int grid_idx = pln * grid->ncol * grid->nrow + row * grid->ncol + col;
+  if (grid_idx >= grid->ncol * grid->nrow * grid->nplanes) {
     error("OOB: %i x %i =>  %i / %i\n", grid->nrow, grid->ncol, grid_idx, grid->nrow * grid->ncol);
   }
   if (grid->val[grid_idx] >= 0) {
@@ -295,7 +312,7 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
   init_points(&p);
   
   grid_t grid = {0};
-  init_grid(&grid, ncol, nrow, cell_size);
+  init_grid(&grid, ncol, nrow, 1, cell_size);
   
   active_t active = {0};
   init_active(&active);
@@ -311,8 +328,8 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
   double yinit = (double)h/2.0 + v2;
   // Rprintf("(%.2f, %.2f) Init [%.2f, %.2f]\n", xinit, yinit, v1, v2);
   
-  int point_idx = add_point(&p, xinit, yinit);
-  set_grid(&grid, point_idx, xinit, yinit);
+  int point_idx = add_point(&p, xinit, yinit, 0);
+  set_grid(&grid, point_idx, xinit, yinit, 0);
   add_active(&active, point_idx);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -351,12 +368,12 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
       
       if (x >= w || y >= h || x < 0 || y < 0) continue;
       
-      bool valid = valid_point(x, y, &grid, &p, r);
+      bool valid = valid_point(x, y, 0, &grid, &p, r);
       if (valid) {
         // Rprintf("(%.2f, %.2f) valid\n", x, y);
-        int new_point_idx = add_point(&p, x, y);
+        int new_point_idx = add_point(&p, x, y, 0);
         add_active(&active, new_point_idx);
-        set_grid(&grid, new_point_idx, x, y);
+        set_grid(&grid, new_point_idx, x, y, 0);
         found = true;
         break;
       }
