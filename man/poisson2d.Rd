@@ -16,8 +16,8 @@ poisson2d(w = 10, h = 10, r = 2, k = 30L, verbosity = 0L)
 \item{verbosity}{Verbosity level. default: 0}
 }
 \value{
-data.frame with x and y coordinates and the 'idx' order in which
-        the points were added.
+data.frame with x and y coordinates. Points are returned in 
+    the order in which they were generated.
 }
 \description{
 Generate Poisson disk samples in 2D

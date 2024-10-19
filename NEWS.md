@@ -1,12 +1,11 @@
-# poissoned 0.1.2.9001
+# poissoned 0.1.3  2024-10-19
 
-* [9000] Refactor
-* [9000] Remove ability to create tile-able points
-* [9001] Switched to C code, added 3D sampling
+* Rewrite in C
+* Include 3D version
 
 # poissoned 0.1.2
 
-* Random inititialisation point is now confined to the central area to avoid 
+* Random initialisation point is now confined to the central area to avoid 
   some edge cases.  This fixes some tiling artefacts.
 * Fixed up an error in how corner points were being mirrored as boundary points.
   This fixes some tiling artefacts.

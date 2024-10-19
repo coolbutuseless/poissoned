@@ -16,13 +16,12 @@ poisson3d(w = 10, h = 10, d = 10, r = 4, k = 30L, verbosity = 0L)
 \item{verbosity}{Verbosity level. default: 0}
 }
 \value{
-data.frame with x and y coordinates and the 'idx' order in which
-        the points were added.
+data.frame with x, y and z coordinates. Points are returned in 
+    the order in which they were generated.
 }
 \description{
 Generate Poisson disk samples in 3D
 }
 \examples{
 poisson3d(w = 10, h = 10, d = 10, r = 5)
-
 }
