@@ -10,34 +10,11 @@
 #include <Rdefines.h>
 
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Random numbers
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#define RNGBUFSIZE 1024
-typedef struct {
-  double buf[RNGBUFSIZE];
-  int idx;
-} rng_buffer_t;
-
-double runif(rng_buffer_t *rng) {
-  
-  if (rng->idx <= 0 || rng->idx >= RNGBUFSIZE) {
-    GetRNGstate();
-    for (int i = 0; i < RNGBUFSIZE; i++) {
-      rng->buf[i] = unif_rand();
-    }
-    PutRNGstate();
-    rng->idx = 0;
-  }
-  
-  double num = rng->buf[rng->idx];
-  rng->idx++;
-  return num;
-}
-
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Points
+// Point Struct
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 typedef struct {
   double *x;
@@ -47,6 +24,9 @@ typedef struct {
 } points_t;
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Points init
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void init_points(points_t *p) {
   p->idx = 0;
   p->capacity = 32;
@@ -57,6 +37,10 @@ void init_points(points_t *p) {
   }
 }
 
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Points add
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int add_point(points_t *p, double x, double y) {
   
   if (p->idx >= p->capacity) {
@@ -72,10 +56,13 @@ int add_point(points_t *p, double x, double y) {
   p->y[p->idx] = y;
   p->idx++;
   
-  
   return p->idx - 1;
 }
 
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Points free
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void free_points(points_t *p) {
   if (p == NULL) return;
   
@@ -84,8 +71,9 @@ void free_points(points_t *p) {
 }
 
 
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Active list
+// Active Struct
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 typedef struct {
   int *list;
@@ -93,6 +81,10 @@ typedef struct {
   int idx;
 } active_t;
 
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Active init
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void init_active(active_t *active) {
   active->capacity = 1024;
   active->idx = 0;
@@ -102,6 +94,19 @@ void init_active(active_t *active) {
   }
 }
 
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Active free
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void free_active(active_t *active) {
+  if (active == NULL) return;
+  free(active->list);
+}
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Active add
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void add_active(active_t *active, int point_idx) {
   
   if (active->idx >= active->capacity) {
@@ -116,12 +121,10 @@ void add_active(active_t *active, int point_idx) {
   active->idx++;
 }
 
-void free_active(active_t *active) {
-  if (active == NULL) return;
-  free(active->list);
-}
 
-
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Active: remove member
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void remove_active(active_t *active, int active_idx) {
   
   if (active_idx >= active->idx) {
@@ -134,6 +137,9 @@ void remove_active(active_t *active, int active_idx) {
 }
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Active: get random member
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int random_active(active_t *active, int *active_idx) {
   
   if (active->idx == 0) {
@@ -149,8 +155,9 @@ int random_active(active_t *active, int *active_idx) {
 }
 
 
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Grid handling
+// Grid struct
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 typedef struct {
   int *val;
@@ -160,6 +167,9 @@ typedef struct {
 } grid_t;
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Grid: init
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void init_grid(grid_t *grid, int ncol, int nrow, double cell_size) {
   grid->ncol = ncol;
   grid->nrow = nrow;
@@ -173,16 +183,21 @@ void init_grid(grid_t *grid, int ncol, int nrow, double cell_size) {
   }
 }
 
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Grid: free
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void free_grid(grid_t *grid) {
   if (grid == NULL) return;
   free(grid->val);
 }
 
-#define MIN(a,b) (((a)<(b))?(a):(b))
-#define MAX(a,b) (((a)>(b))?(a):(b))
 
-
-
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Grid: check if point is valid
+//   i.e. doesn't already have a point at this grid location
+//        is greater than 'r' from all nearby points
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool valid_point(double x, double y, grid_t *grid, points_t *p, double r) {
   
   int col = (int)floor(x / grid->cell_size);
@@ -197,11 +212,11 @@ bool valid_point(double x, double y, grid_t *grid, points_t *p, double r) {
     return false;
   }
   
-  int min_row = MAX(0             , row - 1);
-  int max_row = MIN(grid->nrow - 1, row + 1);
+  int min_row = MAX(0             , row - 2);
+  int max_row = MIN(grid->nrow - 1, row + 2);
   
-  int min_col = MAX(0             , col - 1);
-  int max_col = MIN(grid->ncol - 1, col + 1);
+  int min_col = MAX(0             , col - 2);
+  int max_col = MIN(grid->ncol - 1, col + 2);
   
   for (int this_row = min_row; this_row <= max_row; this_row++) {
     for (int this_col = min_col; this_col <= max_col; this_col++) {
@@ -220,11 +235,13 @@ bool valid_point(double x, double y, grid_t *grid, points_t *p, double r) {
     }
   }
   
-  
   return true;
 }
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Grid: add a point
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void set_grid(grid_t *grid, int point_idx, double x, double y) {
   
   int col = (int)floor(x / grid->cell_size);
@@ -249,7 +266,10 @@ void set_grid(grid_t *grid, int point_idx, double x, double y) {
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Poisson
+// Poisson in 2d
+// @param w,h dimensions of grid
+// @param r minimum separation
+// @param k points to try 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
   
@@ -283,16 +303,6 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Set seed point
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // rng_buffer_t rng;
-  
-  // for (int i = 0; i < 10000; i++) {
-  //   double val = runif(&rng);
-  //   Rprintf("%.2f ", val);
-  //   if (val > 1 || val < 0) error("\n\nWTF\n\n");
-  // }
-  // Rprintf("\n");
-  // return R_NilValue;
-  
   GetRNGstate();
   double v1 = unif_rand();
   double v2 = unif_rand();
@@ -305,6 +315,7 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
   set_grid(&grid, point_idx, xinit, yinit);
   add_active(&active, point_idx);
   
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Pick a random active site
   // Generate 'k' random points
   //   for each point
@@ -314,7 +325,7 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
   //          add point to active list
   //   if no point was valid
   //      remove point from active list
-  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   while (active.idx > 0) {
     // if (active.idx == 0) break;
     int active_idx = 0;
@@ -326,12 +337,12 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
     bool found = false;
     for (int i = 0; i < k; i++) {
       
+      // Uniform random sampling on an annulus
       // Random point in annulus [r, 2r] around (x0, y0)
       GetRNGstate();
       double theta = 2 * M_PI * unif_rand(); //runif(&rng);
       double rand = unif_rand();
       PutRNGstate();
-      // Uniform random sampling on an annulus
       double dist = sqrt(rand * (2*r * 2*r - r*r) + r*r);
       // double x = x0 + (r + 0.00001) * cos( theta );
       // double y = y0 + (r + 0.00001) * sin( theta );
@@ -352,6 +363,9 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
     }
     
     if (!found) {
+      // No valid point was found around this seed point
+      // remove it from the Active list 
+      // i.e. consider it "done"
       remove_active(&active, active_idx);
     }
   }
@@ -373,6 +387,7 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_) {
   
   memcpy(REAL(x_), p.x, p.idx * sizeof(double));
   memcpy(REAL(y_), p.y, p.idx * sizeof(double));
+  
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Tidy and return

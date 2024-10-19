@@ -278,11 +278,33 @@ if (FALSE) {
   
   
   bench::mark(
-    poisson2d(r = 4),
-    cpoisson2d(r = 4),
+    poisson2d(r = 24),
+    cpoisson2d(r = 24),
+    pracma::poisson2disk(n = 150) ,
     check = FALSE
   )
   
+  
+  
+  zz <- cpoisson2d(r = 10)
+  plot(zz, asp = 1, pch = 19, ann = FALSE, axes = FALSE, cex = 0.5)
+  
+  theta <- seq(0, 2*pi, length.out = 50)[-1]
+  create_poly <- function(x, y, r) {
+    list(
+      x = x + r * cos(theta),
+      y = y + r * sin(theta)
+    )
+  }
+  
+  cols <- (terrain.colors(length(zz$x)))
+  
+  for (i in seq_along(zz$x)) {
+    poly <- create_poly(zz$x[i], zz$y[i], r = 10)
+    polygon(poly, border = cols[i])
+  }
+  
+  points(zz, pch = 19, cex = 0.5)
   
 }
 
