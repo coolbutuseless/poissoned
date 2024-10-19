@@ -33,9 +33,9 @@ typedef struct {
 void init_points(points_t *p) {
   p->idx = 0;
   p->capacity = 32;
-  p->x = malloc(p->capacity * sizeof(double));
-  p->y = malloc(p->capacity * sizeof(double));
-  p->z = malloc(p->capacity * sizeof(double));
+  p->x = malloc((size_t)p->capacity * sizeof(double));
+  p->y = malloc((size_t)p->capacity * sizeof(double));
+  p->z = malloc((size_t)p->capacity * sizeof(double));
   if (p->x == NULL || p->y == NULL || p->z == NULL) {
     error("Couldn't initialise points");
   }
@@ -49,9 +49,9 @@ int add_point(points_t *p, double x, double y, double z) {
   
   if (p->idx >= p->capacity) {
     p->capacity *= 2;
-    p->x = realloc(p->x, p->capacity * sizeof(double));
-    p->y = realloc(p->y, p->capacity * sizeof(double));
-    p->z = realloc(p->z, p->capacity * sizeof(double));
+    p->x = realloc(p->x, (size_t)p->capacity * sizeof(double));
+    p->y = realloc(p->y, (size_t)p->capacity * sizeof(double));
+    p->z = realloc(p->z, (size_t)p->capacity * sizeof(double));
     if (p->x == NULL || p->y == NULL || p->z == NULL) {
       error("Couldn't reallocate points");
     }
@@ -95,7 +95,7 @@ typedef struct {
 void init_active(active_t *active) {
   active->capacity = 1024;
   active->idx = 0;
-  active->list = calloc(active->capacity, sizeof(int));
+  active->list = calloc((size_t)active->capacity, sizeof(int));
   if (active->list == NULL) {
     error("Couldn't allocate 'active'");
   }
@@ -118,7 +118,7 @@ void add_active(active_t *active, int point_idx) {
   
   if (active->idx >= active->capacity) {
     active->capacity *= 2;
-    active->list = realloc(active->list, active->capacity * sizeof(int));
+    active->list = realloc(active->list, (size_t)active->capacity * sizeof(int));
     if (active->list == NULL) {
       error("Coudln't reallocate active");
     }
@@ -183,7 +183,7 @@ void init_grid(grid_t *grid, int ncol, int nrow, int nplanes, double cell_size) 
   grid->nrow      = nrow;
   grid->nplanes   = nplanes;
   grid->cell_size = cell_size;
-  grid->val = malloc(ncol * nrow * nplanes * sizeof(int));
+  grid->val = malloc((size_t)(ncol * nrow * nplanes) * sizeof(int));
   if (grid->val == NULL) {
     error("grid allocation failed");
   }
@@ -397,8 +397,8 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_, SEXP verbosity_) {
   
   SEXP x_ = PROTECT(allocVector(REALSXP, p.idx)); nprotect++;
   SEXP y_ = PROTECT(allocVector(REALSXP, p.idx)); nprotect++;
-  memcpy(REAL(x_), p.x, p.idx * sizeof(double));
-  memcpy(REAL(y_), p.y, p.idx * sizeof(double));
+  memcpy(REAL(x_), p.x, (size_t)p.idx * sizeof(double));
+  memcpy(REAL(y_), p.y, (size_t)p.idx * sizeof(double));
   SEXP res_ = PROTECT(create_named_list(2, "x", x_, "y", y_)); nprotect++;
   set_df_attributes(res_);
   
@@ -540,9 +540,9 @@ SEXP poisson3d_(SEXP w_, SEXP h_, SEXP d_, SEXP r_, SEXP k_, SEXP verbosity_) {
   SEXP x_ = PROTECT(allocVector(REALSXP, p.idx)); nprotect++;
   SEXP y_ = PROTECT(allocVector(REALSXP, p.idx)); nprotect++;
   SEXP z_ = PROTECT(allocVector(REALSXP, p.idx)); nprotect++;
-  memcpy(REAL(x_), p.x, p.idx * sizeof(double));
-  memcpy(REAL(y_), p.y, p.idx * sizeof(double));
-  memcpy(REAL(z_), p.z, p.idx * sizeof(double));
+  memcpy(REAL(x_), p.x, (size_t)p.idx * sizeof(double));
+  memcpy(REAL(y_), p.y, (size_t)p.idx * sizeof(double));
+  memcpy(REAL(z_), p.z, (size_t)p.idx * sizeof(double));
   SEXP res_ = PROTECT(create_named_list(3, "x", x_, "y", y_, "z", z_)); nprotect++;
   set_df_attributes(res_);
   
