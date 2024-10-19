@@ -1,6 +1,6 @@
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Generate poisson disc samples
+#' Generate Poisson disk samples in 2D
 #'
 #' @param w,h width and height of region
 #' @param r minimum distance between points

@@ -2,9 +2,9 @@
 % Please edit documentation in R/poisson.R
 \name{poisson3d}
 \alias{poisson3d}
-\title{Generate poisson disc samples in 3D}
+\title{Generate Poisson disk samples in 3D}
 \usage{
-poisson3d(w = 400, h = 300, d = 100, r = 10, k = 30L, verbosity = 0L)
+poisson3d(w = 10, h = 10, d = 10, r = 4, k = 30L, verbosity = 0L)
 }
 \arguments{
 \item{w, h, d}{width and height and depth of region}
@@ -20,7 +20,7 @@ data.frame with x and y coordinates and the 'idx' order in which
         the points were added.
 }
 \description{
-Generate poisson disc samples in 3D
+Generate Poisson disk samples in 3D
 }
 \examples{
 poisson3d(w = 10, h = 10, d = 10, r = 5)

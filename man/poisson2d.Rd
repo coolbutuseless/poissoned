@@ -2,9 +2,9 @@
 % Please edit documentation in R/poisson.R
 \name{poisson2d}
 \alias{poisson2d}
-\title{Generate poisson disc samples}
+\title{Generate Poisson disk samples in 2D}
 \usage{
-poisson2d(w = 400, h = 300, r = 10, k = 30L, verbosity = 0L)
+poisson2d(w = 10, h = 10, r = 2, k = 30L, verbosity = 0L)
 }
 \arguments{
 \item{w, h}{width and height of region}
@@ -20,9 +20,9 @@ data.frame with x and y coordinates and the 'idx' order in which
         the points were added.
 }
 \description{
-Generate poisson disc samples
+Generate Poisson disk samples in 2D
 }
 \examples{
-pts <- poisson2d(w = 10, h = 10, r = 2)
-plot(pts)
+pts <- poisson2d(w = 40, h = 40, r = 1)
+plot(pts, asp = 1, ann = FALSE, axes = FALSE, pch = 19)
 }

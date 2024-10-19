@@ -1,7 +1,8 @@
-# poissoned 0.1.2.9000
+# poissoned 0.1.2.9001
 
 * [9000] Refactor
 * [9000] Remove ability to create tile-able points
+* [9001] Switched to C code, added 3D sampling
 
 # poissoned 0.1.2
 

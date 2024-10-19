@@ -9,6 +9,8 @@
 #include <Rinternals.h>
 #include <Rdefines.h>
 
+#include "utils.h"
+
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
@@ -393,22 +395,12 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_, SEXP verbosity_) {
   }
   
   
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Copy points to R structure
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP res_ = PROTECT(allocVector(VECSXP, 2)); nprotect++;
-  SEXP nms_ = PROTECT(allocVector(STRSXP, 2)); nprotect++;
-  SET_STRING_ELT(nms_, 0, mkChar("x"));
-  SET_STRING_ELT(nms_, 1, mkChar("y"));
-  setAttrib(res_, R_NamesSymbol, nms_);
-  
   SEXP x_ = PROTECT(allocVector(REALSXP, p.idx)); nprotect++;
   SEXP y_ = PROTECT(allocVector(REALSXP, p.idx)); nprotect++;
-  SET_VECTOR_ELT(res_, 0, x_);
-  SET_VECTOR_ELT(res_, 1, y_);
-  
   memcpy(REAL(x_), p.x, p.idx * sizeof(double));
   memcpy(REAL(y_), p.y, p.idx * sizeof(double));
+  SEXP res_ = PROTECT(create_named_list(2, "x", x_, "y", y_)); nprotect++;
+  set_df_attributes(res_);
   
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -545,24 +537,14 @@ SEXP poisson3d_(SEXP w_, SEXP h_, SEXP d_, SEXP r_, SEXP k_, SEXP verbosity_) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Copy points to R structure
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP res_ = PROTECT(allocVector(VECSXP, 3)); nprotect++;
-  SEXP nms_ = PROTECT(allocVector(STRSXP, 3)); nprotect++;
-  SET_STRING_ELT(nms_, 0, mkChar("x"));
-  SET_STRING_ELT(nms_, 1, mkChar("y"));
-  SET_STRING_ELT(nms_, 2, mkChar("z"));
-  setAttrib(res_, R_NamesSymbol, nms_);
-  
   SEXP x_ = PROTECT(allocVector(REALSXP, p.idx)); nprotect++;
   SEXP y_ = PROTECT(allocVector(REALSXP, p.idx)); nprotect++;
   SEXP z_ = PROTECT(allocVector(REALSXP, p.idx)); nprotect++;
-  SET_VECTOR_ELT(res_, 0, x_);
-  SET_VECTOR_ELT(res_, 1, y_);
-  SET_VECTOR_ELT(res_, 2, z_);
-  
   memcpy(REAL(x_), p.x, p.idx * sizeof(double));
   memcpy(REAL(y_), p.y, p.idx * sizeof(double));
   memcpy(REAL(z_), p.z, p.idx * sizeof(double));
-  
+  SEXP res_ = PROTECT(create_named_list(3, "x", x_, "y", y_, "z", z_)); nprotect++;
+  set_df_attributes(res_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Tidy and return

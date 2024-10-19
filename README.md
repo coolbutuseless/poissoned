@@ -10,9 +10,9 @@
 [![R-CMD-check](https://github.com/coolbutuseless/poissoned/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/coolbutuseless/poissoned/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-## Multi-dimensional poisson disc sampling
+## Multi-dimensional Poisson disk sampling
 
-`poissoned` is an R implementation of the poisson disk sampling
+`poissoned` is an R implementation of the Poisson disk sampling
 algorithm from [Bridson’s paper - Fast Poisson Disk Sampling in
 Arbitrary
 Dimensions](https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf)
@@ -32,23 +32,28 @@ You can install from
 devtools::install_github("coolbutuseless/poissoned")
 ```
 
-## Basic Usage
+## 2D Poisson Disk Sampling
 
 ``` r
 library(poissoned)
+pts <- poisson2d(w = 80, h = 60, r = 2)
 
-set.seed(1)
-points <- poissoned::poisson2d(w = 500, h = 300, r = 10, verbosity = 1)
-#> poisson2d(): 500x300, minimum distance = 10
-
-ggplot(points) +
-  geom_point(aes(x, y)) +
-  theme_bw() +
-  coord_fixed() +
-  theme(
-    panel.grid = element_blank(),
-    axis.title = element_blank()
-  ) 
+par(mai = c(0, 0, 0, 0))
+plot(pts, asp = 1, ann = FALSE, axes = FALSE, pch = 19, cex = 0.5)
 ```
 
-<img src="man/figures/README-example-1.png" width="100%" />
+<img src="man/figures/README-example2d-1.png" width="100%" />
+
+## 3D Poisson Disk Sampling
+
+``` r
+library(rgl)
+library(poissoned)
+
+set.seed(1)
+pts <- poisson3d(w = 10, h = 10, d = 10, r = 0.5)
+rgl::points3d(pts, color = rainbow(nrow(pts)))
+rgl::box3d()
+```
+
+![](man/figures/rgl.png)
