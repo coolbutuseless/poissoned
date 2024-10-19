@@ -1,12 +1,17 @@
 Package: poissoned
 Type: Package
-Title: Poisson Disc Sampling
-Version: 0.1.2.9000
+Title: Poisson Disk Sampling in 2D and 3D
+Version: 0.1.2.9001
 Authors@R: c(
     person("Mike", "Cheng", role = c("aut", "cre", 'cph'), email = "mikefc@coolbutuseless.com")
     )
 Maintainer: Mike Cheng <mikefc@coolbutuseless.com>
-Description: Poisson disc sampling.
+Description: Poisson disk sampling is a method of generating blue noise 
+    sample patterns where all samples are at least a specified distance 
+    apart. Poisson samples may be generated in two or three dimensions.
+    These functions are an implementation of 
+    Bridson's "Fast Poisson disk sampling in arbitrary dimensions" 
+    <doi:10.1145%2F1278780.1278807>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 RoxygenNote: 7.3.2
