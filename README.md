@@ -19,10 +19,16 @@ Dimensions](https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.
 
 ### What’s in the box
 
-- `poisson2d()` for the 2D case
-- `poisson3d()` for the 3D case
+- `poisson2d()` generate samples in the XY plane
+- `poisson3d()` generate samples in 3D
 
 ## Installation
+
+This package can be installed from CRAN
+
+``` r
+install.packages('ctypesio')
+```
 
 You can install from
 [GitHub](https://github.com/coolbutuseless/poissoned) with:
@@ -30,6 +36,13 @@ You can install from
 ``` r
 # install.packages("devtools")
 devtools::install_github("coolbutuseless/poissoned")
+```
+
+Pre-built source/binary versions can also be installed from
+[R-universe](https://r-universe.dev)
+
+``` r
+install.packages('poissoned', repos = c('https://coolbutuseless.r-universe.dev', 'https://cloud.r-project.org'))
 ```
 
 ## 2D Poisson Disk Sampling

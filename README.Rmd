@@ -41,11 +41,11 @@ set.seed(1)
 
 ## Installation
 
-<!-- This package can be installed from CRAN -->
+This package can be installed from CRAN
 
-<!-- ``` r -->
-<!-- install.packages('ctypesio') -->
-<!-- ``` -->
+``` r
+install.packages('ctypesio')
+```
 
 
 You can install from [GitHub](https://github.com/coolbutuseless/poissoned) with:

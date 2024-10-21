@@ -1,3 +1,11 @@
+# poissoned 0.1.3.9000
+
+* Fix DOI
+* Fix referencing to be be "Author (Year)" in DESCRIPTION
+* Add package doc
+* Bug fix for initialization points for small canvases
+* Add instructions to install from CRAN
+
 # poissoned 0.1.3  2024-10-19
 
 * Rewrite in C

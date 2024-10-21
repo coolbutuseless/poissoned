@@ -328,8 +328,8 @@ SEXP poisson2d_(SEXP w_, SEXP h_, SEXP r_, SEXP k_, SEXP verbosity_) {
   double v1 = unif_rand();
   double v2 = unif_rand();
   PutRNGstate();
-  double xinit = (double)w/2.0 + v1;
-  double yinit = (double)h/2.0 + v2;
+  double xinit = (double)w/2.0 + v1 * cell_size;
+  double yinit = (double)h/2.0 + v2 * cell_size;
   // Rprintf("(%.2f, %.2f) Init [%.2f, %.2f]\n", xinit, yinit, v1, v2);
   
   int point_idx = add_point(&p, xinit, yinit, 0);
@@ -462,9 +462,9 @@ SEXP poisson3d_(SEXP w_, SEXP h_, SEXP d_, SEXP r_, SEXP k_, SEXP verbosity_) {
   double v2 = unif_rand();
   double v3 = unif_rand();
   PutRNGstate();
-  double xinit = (double)w/2.0 + v1;
-  double yinit = (double)h/2.0 + v2;
-  double zinit = (double)d/2.0 + v3;
+  double xinit = (double)w/2.0 + v1 * cell_size;
+  double yinit = (double)h/2.0 + v2 * cell_size;
+  double zinit = (double)d/2.0 + v3 * cell_size;
   // Rprintf("(%.2f, %.2f) Init [%.2f, %.2f]\n", xinit, yinit, v1, v2);
   
   int point_idx = add_point(&p, xinit, yinit, zinit);
