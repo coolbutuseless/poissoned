@@ -27,7 +27,7 @@ Dimensions](https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.
 This package can be installed from CRAN
 
 ``` r
-install.packages('ctypesio')
+install.packages('poissoned')
 ```
 
 You can install from
